@@ -22,7 +22,15 @@ import java.util.List;
 /**
  * Created by Renita on 5/15/16.
  */
-public class ParagraphVectorClassifier{
+
+
+/**
+ * In this file, they aren't really using a machine learning classifier. They are simply calculating a centroid vector
+ * for each category ('pos' or 'neg'). Then they give the similarity scores between an unLabeledDocument vector and
+ * these category vectors (using cosine similarity).
+ */
+public class ParagraphVectorClassifier {
+
     ParagraphVectors paragraphVectors;
     LabelAwareIterator iterator;
     TokenizerFactory tokenizerFactory;
@@ -30,7 +38,6 @@ public class ParagraphVectorClassifier{
     private static final Logger log = LoggerFactory.getLogger(ParagraphVectorClassifier.class);
 
     public static void main(String[] args) throws Exception {
-
 
         ParagraphVectorClassifier app = new ParagraphVectorClassifier();
         app.makeParagraphVectors();
@@ -52,27 +59,27 @@ public class ParagraphVectorClassifier{
          */
     }
 
-    void makeParagraphVectors()  throws Exception {
+    void makeParagraphVectors() throws Exception {
         ClassPathResource resource = new ClassPathResource("movieData/labeled");
 
         // build a iterator for our dataset
         iterator = new FileLabelAwareIterator.Builder()
-                .addSourceFolder(resource.getFile())
-                .build();
+              .addSourceFolder(resource.getFile())
+              .build();
 
         tokenizerFactory = new DefaultTokenizerFactory();
         tokenizerFactory.setTokenPreProcessor(new CommonPreprocessor());
 
         // ParagraphVectors training configuration
         paragraphVectors = new ParagraphVectors.Builder()
-                .learningRate(0.025)
-                .minLearningRate(0.001)
-                .batchSize(1000)
-                .epochs(1)
-                .iterate(iterator)
-                .trainWordVectors(true)
-                .tokenizerFactory(tokenizerFactory)
-                .build();
+              .learningRate(0.025)
+              .minLearningRate(0.001)
+              .batchSize(1000)
+              .epochs(1)
+              .iterate(iterator)
+              .trainWordVectors(true)
+              .tokenizerFactory(tokenizerFactory)
+              .build();
 
         // Start model training
         paragraphVectors.fit();
@@ -83,13 +90,12 @@ public class ParagraphVectorClassifier{
       At this point we assume that we have model built and we can check
       which categories our unlabeled document falls into.
       So we'll start loading our unlabeled documents and checking them
-
      */
 
         ClassPathResource unClassifiedResource = new ClassPathResource("movieData/unlabeled");
         FileLabelAwareIterator unClassifiedIterator = new FileLabelAwareIterator.Builder()
-                .addSourceFolder(unClassifiedResource.getFile())
-                .build();
+              .addSourceFolder(unClassifiedResource.getFile())
+              .build();
 
      /*
       Now we'll iterate over unlabeled data, and check which label it could be assigned to
@@ -97,30 +103,29 @@ public class ParagraphVectorClassifier{
       with different "weight" for each.
      */
         MeansBuilder meansBuilder = new MeansBuilder(
-                (InMemoryLookupTable<VocabWord>)paragraphVectors.getLookupTable(),
-                tokenizerFactory);
+              (InMemoryLookupTable<VocabWord>) paragraphVectors.getLookupTable(),
+              tokenizerFactory);
         LabelSeeker seeker = new LabelSeeker(iterator.getLabelsSource().getLabels(),
-                (InMemoryLookupTable<VocabWord>) paragraphVectors.getLookupTable());
+                                             (InMemoryLookupTable<VocabWord>) paragraphVectors.getLookupTable());
 
         while (unClassifiedIterator.hasNextDocument()) {
             LabelledDocument document = unClassifiedIterator.nextDocument();
             INDArray documentAsCentroid = meansBuilder.documentAsVector(document);
             List<Pair<String, Double>> scores = seeker.getScores(documentAsCentroid);
 
-         /*
-          please note, document.getLabel() is used just to show which document we're looking at now,
-          as a substitute for printing out the whole document name.
-          So, labels on these two documents are used like titles,
-          just to visualize our classification done properly
-         */
+            /*
+             please note, document.getLabel() is used just to show which document we're looking at now,
+             as a substitute for printing out the whole document name.
+             So, labels on these two documents are used like titles,
+             just to visualize our classification done properly
+            */
 
             log.info("Document '" + document.getLabel() + "' falls into the following categories: ");
             System.out.println("Document '" + document.getLabel() + "' falls into the following categories: ");
-            for (Pair<String, Double> score: scores) {
+            for (Pair<String, Double> score : scores) {
                 System.out.println("        " + score.getFirst() + ": " + score.getSecond());
                 log.info("        " + score.getFirst() + ": " + score.getSecond());
             }
         }
-
     }
 }
