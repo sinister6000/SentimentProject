@@ -3,13 +3,17 @@ package cs517.data;
 /**
  * Created by allen on 5/18/2016.
  */
+
+/**
+ * Class to store a review. Unlabeled reviews get a sccore of -1.
+ */
 public class Review {
 
     private static int nextID = 0;
 
-    private String id;
-    private double score;
-    private String reviewText;
+    String id;
+    int score;
+    String reviewText;
 
     public Review() {
         id = Integer.toString(nextID++);
@@ -23,9 +27,10 @@ public class Review {
         String[] tempReview = parsedReview.split("\t");
         id = tempReview[0];
         try {
-            score = Double.parseDouble(tempReview[1]);
+            score = Integer.parseInt(tempReview[1]);
             reviewText = tempReview[2];
         } catch (NumberFormatException e) {
+            score = -1;
             reviewText = tempReview[1];
         }
     }

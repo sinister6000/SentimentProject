@@ -24,10 +24,10 @@ import java.util.List;
  */
 
 
-/**
- * In this file, they aren't really using a machine learning classifier. They are simply calculating a centroid vector
- * for each category ('pos' or 'neg'). Then they give the similarity scores between an unLabeledDocument vector and
- * these category vectors (using cosine similarity).
+/*
+  In this file, they aren't really using a machine learning classifier. They are simply calculating a centroid vector
+  for each category ('pos' or 'neg'). Then they give the similarity scores between an unLabeledDocument vector and
+  these category vectors (using cosine similarity).
  */
 public class ParagraphVectorClassifier {
 
@@ -47,7 +47,7 @@ public class ParagraphVectorClassifier {
 
                 Document 'health' falls into the following categories:
                     health: 0.29721372296220205
-                     scie'nce: 0.011684473733853906
+                    science: 0.011684473733853906
                     finance: -0.14755302887323793
 
                 Document 'finance' falls into the following categories:
@@ -86,22 +86,21 @@ public class ParagraphVectorClassifier {
     }
 
     void checkUnlabeledData() throws FileNotFoundException {
-      /*
-      At this point we assume that we have model built and we can check
-      which categories our unlabeled document falls into.
-      So we'll start loading our unlabeled documents and checking them
-     */
-
+        /*
+         At this point we assume that we have model built and we can check
+         which categories our unlabeled document falls into.
+         So we'll start loading our unlabeled documents and checking them
+        */
         ClassPathResource unClassifiedResource = new ClassPathResource("movieData/unlabeled");
         FileLabelAwareIterator unClassifiedIterator = new FileLabelAwareIterator.Builder()
               .addSourceFolder(unClassifiedResource.getFile())
               .build();
 
-     /*
-      Now we'll iterate over unlabeled data, and check which label it could be assigned to
-      Please note: for many domains it's normal to have 1 document fall into few labels at once,
-      with different "weight" for each.
-     */
+        /*
+         Now we'll iterate over unlabeled data, and check which label it could be assigned to
+         Please note: for many domains it's normal to have 1 document fall into few labels at once,
+         with different "weight" for each.
+        */
         MeansBuilder meansBuilder = new MeansBuilder(
               (InMemoryLookupTable<VocabWord>) paragraphVectors.getLookupTable(),
               tokenizerFactory);
@@ -119,7 +118,6 @@ public class ParagraphVectorClassifier {
              So, labels on these two documents are used like titles,
              just to visualize our classification done properly
             */
-
             log.info("Document '" + document.getLabel() + "' falls into the following categories: ");
             System.out.println("Document '" + document.getLabel() + "' falls into the following categories: ");
             for (Pair<String, Double> score : scores) {
