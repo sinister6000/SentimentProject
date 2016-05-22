@@ -23,12 +23,15 @@ public class DatasetManager {
         Scanner sc = null;
         try {
             sc = new Scanner(f);
-            String currentLine = sc.nextLine();   // skip over 1st header line
+            sc.useDelimiter(System.getProperty("line.separator"));
+            String currentLine = sc.next();   // skip over 1st header line
             Review currentReview;
-            while (sc.hasNextLine()) {
-                currentLine = sc.nextLine();
+            while (sc.hasNext()) {
+                currentLine = sc.next();
+//                System.out.println(currentLine);
                 currentReview = new Review(currentLine);
                 reviews.put(currentReview.id, currentReview);
+                System.out.println(currentReview.id + "\t" + currentReview.score + "\t" + currentReview.reviewText);
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -59,8 +62,8 @@ public class DatasetManager {
             Review currentReview;
             for (String key: reviews.keySet()) {
                 currentReview = reviews.get(key);
-                if ((int) currentReview.score == scoreType) {
-                    File f = new File(dir, currentReview.id);
+                if (currentReview.score == scoreType) {
+                    File f = new File(dir, currentReview.id + ".txt");
                     try (BufferedWriter bw = new BufferedWriter(new FileWriter(f))) {
                         bw.write(currentReview.reviewText);
                     } catch (IOException e) {
@@ -70,5 +73,22 @@ public class DatasetManager {
                 }
             }
         }
+    }
+
+
+    public static void main(String[] args) {
+        DatasetManager dm = new DatasetManager();
+        System.out.println(System.getProperty("user.dir"));
+        File df = new File("src/main/resources/movieData/toyMaasDataset/toyLabeledTrainData.tsv");
+        System.out.println("datafile path: " + df.getPath());
+        dm.importData(df);
+        File dir = new File(df.getParent() + "/labeled/pos");
+        System.out.println("dir path: " + dir.getPath());
+        dir.mkdirs();
+        dm.toSeparateFiles(dir, 1);
+
+        File negDir = new File(df.getParent() + "/labeled/neg");
+        negDir.mkdirs();
+        dm.toSeparateFiles(negDir, 0);
     }
 }
