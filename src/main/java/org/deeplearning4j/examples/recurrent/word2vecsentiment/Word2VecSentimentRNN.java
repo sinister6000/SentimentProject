@@ -99,7 +99,12 @@ public class Word2VecSentimentRNN {
 
             //Run evaluation. This is on 25k reviews, so can take some time
             Evaluation evaluation = new Evaluation();
+            int i = 0;
             while(test.hasNext()){
+                if (i%200 == 0) {
+                    System.out.println("processing " + i);
+                }
+
                 DataSet t = test.next();
                 INDArray features = t.getFeatureMatrix();
                 INDArray lables = t.getLabels();
@@ -108,6 +113,7 @@ public class Word2VecSentimentRNN {
                 INDArray predicted = net.output(features,false,inMask,outMask);
 
                 evaluation.evalTimeSeries(lables,predicted,outMask);
+                i++;
             }
             test.reset();
 

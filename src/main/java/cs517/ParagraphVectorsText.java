@@ -32,7 +32,8 @@ public class ParagraphVectorsText {
     private static final Logger log = LoggerFactory.getLogger(ParagraphVectorsTextExample.class);
 
     public static void main(String[] args) throws Exception {
-        ClassPathResource resource = new ClassPathResource("src/main/resources/movieData/maasDataset/");
+        ClassPathResource resource = new ClassPathResource("src/main/resources/movieData/maasDataset/allReviewText"
+                                                           + ".txt");
         File file = resource.getFile();
         SentenceIterator iter = new BasicLineIterator(file);
 
