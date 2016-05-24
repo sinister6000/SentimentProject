@@ -20,7 +20,6 @@ public class Review {
     String reviewText;
 
     public Review() {
-        id = Integer.toString(nextID++);
     }
 
     /**
@@ -30,7 +29,7 @@ public class Review {
     public Review(String parsedReview) {
         Scanner sc = new Scanner(parsedReview);
 
-        Pattern p = Pattern.compile("\"(\\d+_\\d+)\" +([01])? +\"(.*)\"");
+        Pattern p = Pattern.compile("\"(\\d+_\\d+)\"\\t([01])?\\t?\"(.*)\"");
         sc.findInLine(p);
         MatchResult result = sc.match();
         id = result.group(1);
@@ -39,7 +38,7 @@ public class Review {
             reviewText = result.group(3);
         } catch (NumberFormatException e) {
             score = -1;
-            reviewText = result.group(2);
+            reviewText = result.group(3);
         } finally {
             sc.close();
         }

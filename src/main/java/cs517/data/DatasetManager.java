@@ -57,19 +57,17 @@ public class DatasetManager {
      * @param dir directory to write files
      * @param scoreType unlabeled (-1), negative (0), or positive (1)
      */
-    public void toSeparateFiles(File dir, int scoreType) {
+    public void toSeparateFiles(String dir, int scoreType) {
         if (!reviews.isEmpty()) {
-            Review currentReview;
             for (String key: reviews.keySet()) {
-                currentReview = reviews.get(key);
+                Review currentReview = reviews.get(key);
                 if (currentReview.score == scoreType) {
-                    File f = new File(dir, currentReview.id + ".txt");
+                    File f = new File(dir + currentReview.id + ".txt");
                     try (BufferedWriter bw = new BufferedWriter(new FileWriter(f))) {
                         bw.write(currentReview.reviewText);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
                 }
             }
         }
@@ -78,17 +76,22 @@ public class DatasetManager {
 
     public static void main(String[] args) {
         DatasetManager dm = new DatasetManager();
-        System.out.println(System.getProperty("user.dir"));
-        File df = new File("src/main/resources/movieData/toyMaasDataset/toyLabeledTrainData.tsv");
-        System.out.println("datafile path: " + df.getPath());
-        dm.importData(df);
-        File dir = new File(df.getParent() + "/labeled/pos");
-        System.out.println("dir path: " + dir.getPath());
-        dir.mkdirs();
-        dm.toSeparateFiles(dir, 1);
+//        File df = new File("src/main/resources/movieData/maasDataset/labeledTrainData.tsv");
+//        dm.importData(df);
+//        File dir = new File(df.getParent() + "/labeled/pos");
+//        System.out.println("dir path: " + dir.getPath());
+//        dir.mkdirs();
+//        dm.toSeparateFiles(dir, 1);
+//
+//        File negDir = new File(df.getParent() + "/labeled/neg");
+//        negDir.mkdirs();
+//        dm.toSeparateFiles(negDir, 0);
 
-        File negDir = new File(df.getParent() + "/labeled/neg");
-        negDir.mkdirs();
-        dm.toSeparateFiles(negDir, 0);
+        File unlabeledDF = new File("src/main/resources/movieData/maasDataset/unlabeledTrainData.tsv");
+        dm.importData(unlabeledDF);
+        String unlabeledPath = unlabeledDF.getParent() + "/unlabeled/";
+//        File unlDir = new File(unlabeledDF.getParent() + "/unlabeled");
+//        unlDir.mkdirs();
+        dm.toSeparateFiles(unlabeledPath, -1);
     }
 }
