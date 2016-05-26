@@ -1,17 +1,16 @@
 package cs517;
 
-import org.deeplearning4j.examples.nlp.paragraphvectors.ParagraphVectorsTextExample;
 import org.deeplearning4j.models.paragraphvectors.ParagraphVectors;
 import org.deeplearning4j.models.word2vec.wordstore.inmemory.InMemoryLookupCache;
 import org.deeplearning4j.text.documentiterator.LabelsSource;
-import org.deeplearning4j.text.sentenceiterator.BasicLineIterator;
+import org.deeplearning4j.text.sentenceiterator.LineSentenceIterator;
+import org.deeplearning4j.text.sentenceiterator.PrefetchingSentenceIterator;
 import org.deeplearning4j.text.sentenceiterator.SentenceIterator;
 import org.deeplearning4j.text.tokenization.tokenizer.preprocessor.CommonPreprocessor;
 import org.deeplearning4j.text.tokenization.tokenizerfactory.DefaultTokenizerFactory;
 import org.deeplearning4j.text.tokenization.tokenizerfactory.TokenizerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
 
 import java.io.File;
 
@@ -29,16 +28,25 @@ import java.io.File;
  */
 public class ParagraphVectorsText {
 
-    private static final Logger log = LoggerFactory.getLogger(ParagraphVectorsTextExample.class);
+    private static final Logger log = LoggerFactory.getLogger(ParagraphVectorsText.class);
 
     public static void main(String[] args) throws Exception {
-        ClassPathResource resource = new ClassPathResource("src/main/resources/movieData/maasDataset/allReviewText"
-                                                           + ".txt");
-        File file = resource.getFile();
-        SentenceIterator iter = new BasicLineIterator(file);
+//        ClassPathResource resource = new ClassPathResource("/movieData/maasDataset/allReviewText.txt");
+//        File file = resource.getFile();
+//        SentenceIterator iter = new BasicLineIterator(file);
+//
+//        InMemoryLookupCache cache = new InMemoryLookupCache();
+//
+//        TokenizerFactory t = new DefaultTokenizerFactory();
+//        t.setTokenPreProcessor(new CommonPreprocessor());
 
+        log.info("Load & Vectorize Sentences....");
+        // Strip white space before and after for each line
+        File f = new File("src/main/resources/movieData/maasDataset/allReviewText.txt");
+        SentenceIterator iter = new PrefetchingSentenceIterator.Builder(new LineSentenceIterator(f))
+              .setSentencePreProcessor(new MySentencePreProcessor())
+              .build();
         InMemoryLookupCache cache = new InMemoryLookupCache();
-
         TokenizerFactory t = new DefaultTokenizerFactory();
         t.setTokenPreProcessor(new CommonPreprocessor());
 
@@ -51,15 +59,15 @@ public class ParagraphVectorsText {
         LabelsSource source = new LabelsSource("DOC_");
 
         ParagraphVectors vec = new ParagraphVectors.Builder()
-              .minWordFrequency(1)
-              .iterations(3)
+              .minWordFrequency(40)
+              .iterations(1)
               .epochs(1)
-              .layerSize(100)
+              .layerSize(5)
               .learningRate(0.025)
               .labelsSource(source)
-              .windowSize(5)
+              .windowSize(1)
               .iterate(iter)
-              .trainWordVectors(false)
+              .trainWordVectors(true)
               .vocabCache(cache)
               .tokenizerFactory(t)
               .sampling(0)
