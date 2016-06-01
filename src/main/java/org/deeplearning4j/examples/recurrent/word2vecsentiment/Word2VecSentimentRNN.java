@@ -36,7 +36,7 @@ import java.net.URL;
  * 1. Download data (movie reviews) + extract. Download + extraction is done automatically.
  * 2. Load existing Word2Vec model (for example: Google News word vectors. You will have to download this MANUALLY)
  * 3. Load each each review. Convert words to vectors + reviews to sequences of vectors
- * 4. Train network for multiple epochs. At each epoch: evaluate performance on the code.test set.
+ * 4. Train network for multiple epochs. At each epoch: evaluate performance on the test set.
  *
  * NOTE / INSTRUCTIONS:
  * You will have to download the Google News word vector model manually. ~1.5GB before extraction.
@@ -53,8 +53,7 @@ public class Word2VecSentimentRNN {
     /** Location to save and extract the training/testing data */
     public static final String DATA_PATH = FilenameUtils.concat(System.getProperty("java.io.tmpdir"), "dl4j_w2vSentiment/");
     /** Location (local file system) for the Google News vectors. Set this manually. */
-    public static final String WORD_VECTORS_PATH =
-        "C:\\Docs\\School\\CSUPomona\\CS517\\NLPProject\\data\\GoogleNews-vectors-negative300.bin";
+    public static final String WORD_VECTORS_PATH = "/users/Renita/GoogleNews-vectors-negative300.bin";
 
 
     public static void main(String[] args) throws Exception {
@@ -63,7 +62,7 @@ public class Word2VecSentimentRNN {
 
         int batchSize = 50;     //Number of examples in each minibatch
         int vectorSize = 300;   //Size of the word vectors. 300 in the Google News model
-        int nEpochs = 5;        //Number of epochs (full passes of training data) to code.train on
+        int nEpochs = 1;        //Number of epochs (full passes of training data) to train on
         int truncateReviewsToLength = 300;  //Truncate reviews with length (# words) greater than this
 
         //Set up network configuration
@@ -99,12 +98,7 @@ public class Word2VecSentimentRNN {
 
             //Run evaluation. This is on 25k reviews, so can take some time
             Evaluation evaluation = new Evaluation();
-            int counter = 0;
             while(test.hasNext()){
-                if (counter%200 == 0) {
-                    System.out.println("processing " + i);
-                }
-
                 DataSet t = test.next();
                 INDArray features = t.getFeatureMatrix();
                 INDArray lables = t.getLabels();
@@ -113,7 +107,6 @@ public class Word2VecSentimentRNN {
                 INDArray predicted = net.output(features,false,inMask,outMask);
 
                 evaluation.evalTimeSeries(lables,predicted,outMask);
-                counter++;
             }
             test.reset();
 
