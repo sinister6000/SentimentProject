@@ -1,11 +1,7 @@
 package cs517.data;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.*;
 
 /**
  * Created by allen on 5/17/2016.
@@ -29,12 +25,11 @@ public class DatasetManager {
             Review currentReview;
             while (sc.hasNext()) {
                 currentLine = sc.next();
-//                System.out.println(currentLine);
                 currentReview = new Review(currentLine);
                 reviews.put(currentReview.id, currentReview);
-//                System.out.println(currentReview.id + "\t" + currentReview.score + "\t" + currentReview.reviewText);
             }
         } catch (FileNotFoundException e) {
+            System.err.println("importData could not find file");
             e.printStackTrace();
         }
     }
@@ -86,83 +81,107 @@ public class DatasetManager {
     }
 
 
-    public void toGroupFiles(String dir) {
+    public void toGroupFiles(String dir, boolean train) {
+        File newDir = new File(dir + (train ? "train" : "test"));
+        newDir.mkdirs();
+        List<BufferedWriter> bwList = new ArrayList<>();
         try {
-            BufferedWriter b0 = new BufferedWriter(new FileWriter(new File(dir + "/0.tsv")));
-            BufferedWriter b1 = new BufferedWriter(new FileWriter(new File(dir + "/1.tsv")));
-            BufferedWriter b2 = new BufferedWriter(new FileWriter(new File(dir + "/2.tsv")));
-            BufferedWriter b3 = new BufferedWriter(new FileWriter(new File(dir + "/3.tsv")));
-            BufferedWriter b4 = new BufferedWriter(new FileWriter(new File(dir + "/4.tsv")));
-            BufferedWriter b7 = new BufferedWriter(new FileWriter(new File(dir + "/7.tsv")));
-            BufferedWriter b8 = new BufferedWriter(new FileWriter(new File(dir + "/8.tsv")));
-            BufferedWriter b9 = new BufferedWriter(new FileWriter(new File(dir + "/9.tsv")));
-            BufferedWriter b10 = new BufferedWriter(new FileWriter(new File(dir + "/10.tsv")));
+            //BufferedWriter b0 = new BufferedWriter(new FileWriter(new File(dir + (train ? "train" : "test") + "/0.txt")));
+            BufferedWriter b1 = new BufferedWriter(new FileWriter(newDir + "/1.txt"));
+            BufferedWriter b2 = new BufferedWriter(new FileWriter(newDir + "/2.txt"));
+            BufferedWriter b3 = new BufferedWriter(new FileWriter(newDir + "/3.txt"));
+            BufferedWriter b4 = new BufferedWriter(new FileWriter(newDir + "/4.txt"));
+            BufferedWriter b7 = new BufferedWriter(new FileWriter(newDir + "/7.txt"));
+            BufferedWriter b8 = new BufferedWriter(new FileWriter(newDir + "/8.txt"));
+            BufferedWriter b9 = new BufferedWriter(new FileWriter(newDir + "/9.txt"));
+            BufferedWriter b10 = new BufferedWriter(new FileWriter(newDir + "/10.txt"));
 
-            b0.write("id\treview\n");
-            b1.write("id\tsentiment\treview\n");
-            b2.write("id\tsentiment\treview\n");
-            b3.write("id\tsentiment\treview\n");
-            b4.write("id\tsentiment\treview\n");
-            b7.write("id\tsentiment\treview\n");
-            b8.write("id\tsentiment\treview\n");
-            b9.write("id\tsentiment\treview\n");
-            b10.write("id\tsentiment\treview\n");
+            //bwList.add(b0);
+            bwList.add(b1);
+            bwList.add(b2);
+            bwList.add(b3);
+            bwList.add(b4);
+            bwList.add(b7);
+            bwList.add(b8);
+            bwList.add(b9);
+            bwList.add(b10);
+
 
             Review currRev;
             for (String revID : reviews.keySet()) {
                 currRev = reviews.get(revID);
-                Pattern p = Pattern.compile("[0-9]+_([0-9]+)");
-                Matcher matcher = p.matcher(currRev.id);
-                matcher.find();
-                int sentimentScore = Integer.parseInt(matcher.group(1));
+                int sentimentScore = currRev.score;
                 switch (sentimentScore) {
                     case 0:
-                        b0.write(currRev.id + "\t" + currRev.reviewText + "\n");
+                        //b0.write(currRev.reviewText + "\n");
+                        break;
                     case 1:
-                        b1.write(currRev.id + "\t" + sentimentScore + "\t" + currRev.reviewText + "\n");
+                        b1.write(currRev.reviewText + "\n");
+                        break;
                     case 2:
-                        b2.write(currRev.id + "\t" + sentimentScore + "\t" + currRev.reviewText + "\n");
+                        b2.write(currRev.reviewText + "\n");
+                        break;
                     case 3:
-                        b3.write(currRev.id + "\t" + sentimentScore + "\t" + currRev.reviewText + "\n");
+                        b3.write(currRev.reviewText + "\n");
+                        break;
                     case 4:
-                        b4.write(currRev.id + "\t" + sentimentScore + "\t" + currRev.reviewText + "\n");
+                        b4.write(currRev.reviewText + "\n");
+                        break;
                     case 7:
-                        b7.write(currRev.id + "\t" + sentimentScore + "\t" + currRev.reviewText + "\n");
+                        b7.write(currRev.reviewText + "\n");
+                        break;
                     case 8:
-                        b8.write(currRev.id + "\t" + sentimentScore + "\t" + currRev.reviewText + "\n");
+                        b8.write(currRev.reviewText + "\n");
+                        break;
                     case 9:
-                        b9.write(currRev.id + "\t" + sentimentScore + "\t" + currRev.reviewText + "\n");
+                        b9.write(currRev.reviewText + "\n");
+                        break;
                     case 10:
-                        b10.write(currRev.id + "\t" + sentimentScore + "\t" + currRev.reviewText + "\n");
-
+                        b10.write(currRev.reviewText + "\n");
+                        break;
                 }
             }
 
-
+            for (BufferedWriter bw : bwList) {
+                bw.close();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
 
-    public static void main(String[] args) {
+    public static void makeTrainingSplits() {
         DatasetManager dm = new DatasetManager();
-        File df = new File("src/main/resources/movieData/maasDataset/labeledTrainData.tsv");
-        dm.importData(df);
-        File unlabeledDF = new File("src/main/resources/movieData/maasDataset/unlabeledTrainData.tsv");
-        dm.importData(unlabeledDF);
-
+        File ldf = new File("src/main/resources/movieData/maasDataset/labeledTrainData.tsv");
+        dm.importData(ldf);
+        //File udf = new File("src/main/resources/movieData/maasDataset/unlabeledTrainData.tsv");
+        //dm.importData(udf);
         String pathForSplitData = "src/main/resources/movieData/maasDataset/splits/";
         File dir = new File(pathForSplitData);
         dir.mkdirs();
-        dm.toGroupFiles(pathForSplitData);
-//        File dir = new File(df.getParent() + "/paravec/");
-//        System.out.println("dir path: " + dir.getPath());
-//        dir.mkdirs();
-//        dm.toSeparateFiles(dir.getPath(), 1);
-//        dm.toSeparateFiles(dir.getPath(), 0);
-//        dm.toSeparateFiles(dir.getPath(), -1);
+        dm.toGroupFiles(pathForSplitData, true);
+    }
 
+    public static void makeTestingSplits() {
+        DatasetManager dm = new DatasetManager();
+        File ldf = new File("src/main/resources/movieData/maasDataset/testData.tsv");
+        dm.importData(ldf);
+        String pathForSplitData = "src/main/resources/movieData/maasDataset/splits/";
+        File dir = new File(pathForSplitData);
+        dir.mkdirs();
+        dm.toGroupFiles(pathForSplitData, false);
+    }
+
+    public static void main(String[] args) {
+        makeTrainingSplits();
+        makeTestingSplits();
+        //File dir = new File(df.getParent() + "/paravec/");
+        //System.out.println("dir path: " + dir.getPath());
+        //dir.mkdirs();
+        //dm.toSeparateFiles(dir.getPath(), 1);
+        //dm.toSeparateFiles(dir.getPath(), 0);
+        //dm.toSeparateFiles(dir.getPath(), -1);
         //dm.toSingleFile("src/main/resources/movieData/maasDataset/allReviewText.txt");
 
 

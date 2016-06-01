@@ -51,6 +51,8 @@ public class SentimentIterator implements DataSetIterator {
         positiveFiles = p.listFiles();
         negativeFiles = n.listFiles();
 
+        File f1 = new File("src/main/resources/movieData/maasDataset/splits/" + (train ? "train/1.txt" : "test/1.txt"));
+
         this.wordVectors = wordVectors;
         this.truncateLength = truncateLength;
 

@@ -9,7 +9,7 @@ import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
 /**
- * Class to store a review. Unlabeled reviews get a sccore of -1.
+ * Class to store a review. Unlabeled reviews get a polarity of -1.
  */
 public class Review {
 
@@ -17,6 +17,7 @@ public class Review {
 
     String id;
     int score;
+    int polarity;
     String reviewText;
 
     public Review() {
@@ -28,17 +29,16 @@ public class Review {
      */
     public Review(String parsedReview) {
         Scanner sc = new Scanner(parsedReview);
-
-        Pattern p = Pattern.compile("\"(\\d+_\\d+)\"\\t([01])?\\t?\"(.*)\"");
+        Pattern p = Pattern.compile("\"(\\d+_(\\d+))\"\\t([01])?\\t?\"(.*)\"$");
         sc.findInLine(p);
         MatchResult result = sc.match();
         id = result.group(1);
+        score = Integer.parseInt(result.group(2));
+        reviewText = result.group(4);
         try {
-            score = Integer.parseInt(result.group(2));
-            reviewText = result.group(3);
+            polarity = Integer.parseInt(result.group(3));
         } catch (NumberFormatException e) {
-            score = -1;
-            reviewText = result.group(3);
+            polarity = -1;
         } finally {
             sc.close();
         }
