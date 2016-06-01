@@ -22,9 +22,8 @@ public class DatasetManager {
      * @param f File of reviews
      */
     public void importData(File f) {
-        Scanner sc = null;
         try {
-            sc = new Scanner(f);
+            Scanner sc = new Scanner(f);
             sc.useDelimiter(System.getProperty("line.separator"));
             String currentLine = sc.next();   // skip over 1st header line
             Review currentReview;
@@ -37,10 +36,6 @@ public class DatasetManager {
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-        } finally {
-            if (sc != null) {
-                sc.close();
-            }
         }
     }
 
@@ -116,8 +111,9 @@ public class DatasetManager {
             Review currRev;
             for (String revID : reviews.keySet()) {
                 currRev = reviews.get(revID);
-                Pattern p = Pattern.compile("\\d+_(\\d+)");
+                Pattern p = Pattern.compile("[0-9]+_([0-9]+)");
                 Matcher matcher = p.matcher(currRev.id);
+                matcher.find();
                 int sentimentScore = Integer.parseInt(matcher.group(1));
                 switch (sentimentScore) {
                     case 0:
