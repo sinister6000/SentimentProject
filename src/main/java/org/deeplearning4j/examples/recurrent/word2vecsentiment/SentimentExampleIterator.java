@@ -65,6 +65,7 @@ public class SentimentExampleIterator implements DataSetIterator {
     }
 
 
+
     @Override
     public DataSet next(int num) {
         if (cursor >= positiveFiles.length + negativeFiles.length) throw new NoSuchElementException();
@@ -74,6 +75,7 @@ public class SentimentExampleIterator implements DataSetIterator {
             throw new RuntimeException(e);
         }
     }
+
 
     private DataSet nextDataSet(int num) throws IOException {
         //First: load reviews to String. Alternate positive and negative reviews

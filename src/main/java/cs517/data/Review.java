@@ -1,11 +1,7 @@
 package cs517.data;
 
-import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
-import org.deeplearning4j.models.embeddings.wordvectors.WordVectors;
 import org.nd4j.linalg.api.ndarray.INDArray;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Scanner;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
@@ -57,12 +53,6 @@ public class Review {
         } finally {
             sc.close();
         }
-
-
-    }
-
-
-    private INDArray getVectors(String revText, WordVectors wordvecs) {
 
 
     }

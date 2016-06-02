@@ -1,15 +1,14 @@
 package cs517;
 
+import cs517.data.MultiClassIterator;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.canova.api.util.ClassPathResource;
 import org.deeplearning4j.datasets.iterator.AsyncDataSetIterator;
 import org.deeplearning4j.datasets.iterator.DataSetIterator;
 import org.deeplearning4j.eval.Evaluation;
-import org.deeplearning4j.examples.recurrent.word2vecsentiment.SentimentExampleIterator;
 import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
 import org.deeplearning4j.models.embeddings.wordvectors.WordVectors;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
@@ -76,8 +75,8 @@ public class Word2VecRNN {
         //Using AsyncDataSetIterator to do data loading in a separate thread; this may improve performance vs. waiting for data to load
         //WordVectors wordVectors = WordVectorSerializer.loadGoogleModel(new File(WORD_VECTORS_PATH), true, false);
         WordVectors wordVectors = WordVectorSerializer.loadTxtVectors(new File("sentimentWordVectors.txt"));
-        DataSetIterator train = new AsyncDataSetIterator(new SentimentIterator(DATA_PATH,wordVectors,batchSize,truncateReviewsToLength,true),1);
-        DataSetIterator test = new AsyncDataSetIterator(new SentimentIterator(DATA_PATH,wordVectors,100,truncateReviewsToLength,false),1);
+        DataSetIterator train = new AsyncDataSetIterator(new MultiClassIterator(DATA_PATH,wordVectors,batchSize,truncateReviewsToLength,true),1);
+        DataSetIterator test = new AsyncDataSetIterator(new MultiClassIterator(DATA_PATH,wordVectors,100,truncateReviewsToLength,false),1);
 
         System.out.println("Starting training");
         for( int i=0; i<nEpochs; i++ ){
