@@ -1,17 +1,30 @@
 package cs517.data;
 
-/**
- * Created by allen on 5/18/2016.
- */
+import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
+import org.deeplearning4j.models.embeddings.wordvectors.WordVectors;
+import org.nd4j.linalg.api.ndarray.INDArray;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Scanner;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
 /**
- * Class to store a review. Unlabeled reviews get a polarity of -1.
+ * Created by allen on 5/18/2016.
  */
+
+/**
+ * Class to store a review. Unlabeled reviews get a polarity of -1. During the creation of a Review object,
+ * we tokenize and translate to word2vec vectors.
+ */
+
+
+
+
+
 public class Review {
+
 
     private static int nextID = 0;
 
@@ -19,6 +32,8 @@ public class Review {
     int score;
     int polarity;
     String reviewText;
+    INDArray reviewVecs;
+
 
     public Review() {
     }
@@ -42,5 +57,13 @@ public class Review {
         } finally {
             sc.close();
         }
+
+
+    }
+
+
+    private INDArray getVectors(String revText, WordVectors wordvecs) {
+
+
     }
 }
