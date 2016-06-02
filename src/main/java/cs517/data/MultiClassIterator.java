@@ -16,10 +16,7 @@ import org.nd4j.linalg.indexing.NDArrayIndex;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 /**
  * Created by Renita on 5/24/16.
@@ -32,26 +29,26 @@ public class MultiClassIterator implements DataSetIterator {
     private DataSetManager dm;
     private final int batchSize;
 
-    private int cursor = 0;
+    private List<String> shuffledReviews;
+    private int cursor;
 
 
     /**
      * Constructor
      *
      * @param dataSetManager the DataSetManager object that contains all the reviews
-     * @param wordVectors    WordVectors object
      * @param batchSize      Size of each minibatch for training
-     * @param truncateLength maximum length for a movie review
      * @param train          If true: return the training data. If false: return the testing data.
      */
-    public MultiClassIterator(DataSetManager dataSetManager,
-                              WordVectors wordVectors,
-                              int batchSize,
-                              int truncateLength,
-                              boolean train)
+    public MultiClassIterator(DataSetManager dataSetManager, int batchSize, boolean train)
             throws IOException {
 
+        this.dm = dataSetManager;
         this.batchSize = batchSize;
+
+        List<String> shuffledReviews = new ArrayList<>();
+        shuffledReviews.addAll(dm.revIDs);
+        Collections.shuffle(shuffledReviews);
 
         File f1 = new File("src/main/resources/movieData/maasDataset/splits/" + (train ? "train/" : "test/") + "1.txt");
         File f2 = new File("src/main/resources/movieData/maasDataset/splits/" + (train ? "train/" : "test/") + "2.txt");

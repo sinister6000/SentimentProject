@@ -1,5 +1,6 @@
 package cs517.data;
 
+import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
 import org.deeplearning4j.models.embeddings.wordvectors.WordVectors;
 
@@ -98,6 +99,7 @@ public class DataSetManager {
      * @param vsm Vector Space Model that has all the wordVectors.
      */
     public void reviews2wordVectors(WordVectors vsm, int maxLength) {
+        StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
         // for each review in reviews
             // pass through Stanford CoreNLP, giving us sentences and tokens
 
