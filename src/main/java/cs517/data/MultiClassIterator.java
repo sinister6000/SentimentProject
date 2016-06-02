@@ -29,7 +29,7 @@ public class MultiClassIterator implements DataSetIterator {
     private DataSetManager dm;
     private final int batchSize;
 
-    private List<String> shuffledReviews;
+    private List<String> shuffledRevIDs;
     private int cursor;
 
 
@@ -46,23 +46,11 @@ public class MultiClassIterator implements DataSetIterator {
         this.dm = dataSetManager;
         this.batchSize = batchSize;
 
-        List<String> shuffledReviews = new ArrayList<>();
-        shuffledReviews.addAll(dm.revIDs);
-        Collections.shuffle(shuffledReviews);
+        List<String> shuffledRevIDs = new ArrayList<>();
+        shuffledRevIDs.addAll(dm.revIDs);
+        Collections.shuffle(shuffledRevIDs);
 
-        File f1 = new File("src/main/resources/movieData/maasDataset/splits/" + (train ? "train/" : "test/") + "1.txt");
-        File f2 = new File("src/main/resources/movieData/maasDataset/splits/" + (train ? "train/" : "test/") + "2.txt");
-        File f3 = new File("src/main/resources/movieData/maasDataset/splits/" + (train ? "train/" : "test/") + "3.txt");
-        File f4 = new File("src/main/resources/movieData/maasDataset/splits/" + (train ? "train/" : "test/") + "4.txt");
-        File f7 = new File("src/main/resources/movieData/maasDataset/splits/" + (train ? "train/" : "test/") + "7.txt");
-        File f8 = new File("src/main/resources/movieData/maasDataset/splits/" + (train ? "train/" : "test/") + "8.txt");
-        File f9 = new File("src/main/resources/movieData/maasDataset/splits/" + (train ? "train/" : "test/") + "9.txt");
-        File f10 = new File("src/main/resources/movieData/maasDataset/splits/" + (train ? "train/" : "test/") + "10.txt");
-        positiveFiles = new File[]{f7, f8, f9, f10};
-        negativeFiles = new File[]{f1, f2, f3, f4};
-
-        tokenizerFactory = new DefaultTokenizerFactory();
-        tokenizerFactory.setTokenPreProcessor(new CommonPreprocessor());
+        cursor = 0;
     }
 
 
@@ -73,8 +61,10 @@ public class MultiClassIterator implements DataSetIterator {
      * @return
      */
     @Override
-    public DataSet next(int num) {
-        if (cursor >= positiveFiles.length + negativeFiles.length) throw new NoSuchElementException();
+    DataSet next(int num) {
+        if (cursor >= dm.reviews.size()) {
+            throw new NoSuchElementException();
+        }
         try {
             return nextDataSet(num);
         } catch (IOException e) {
@@ -91,22 +81,31 @@ public class MultiClassIterator implements DataSetIterator {
      */
     private DataSet nextDataSet(int num) throws IOException {
         //First: load reviews to String. Alternate positive and negative reviews
-        List<String> reviews = new ArrayList<>(num);
+        List<String> reviewIDs = new ArrayList<>(num);
         for (int i = 0; i < num && cursor < totalExamples(); i++) {
-            if (cursor % 2 == 0) {
-                //Load positive review
-                int posReviewNumber = cursor / 2;
-                String review = FileUtils.readFileToString(positiveFiles[posReviewNumber]);
-                reviews.add(review);
-            } else {
-                //Load negative review
-                int negReviewNumber = cursor / 2;
-                String review = FileUtils.readFileToString(negativeFiles[negReviewNumber]);
-                reviews.add(review);
+            try {
+                String tempRevID = shuffledRevIDs.get(cursor);
+                cursor++;
+                reviewIDs.add(tempRevID);
+            } catch (ArrayIndexOutOfBoundsException e) {
+                break;
             }
-            cursor++;
         }
+        // for each reviewID in reviewIDs:
+            // lookup the actual Review object in DataSetManager.
+            // From the Review object, grab the vector representation and the score and construct a DataSet object
 
+        DataSet dataset = new DataSet();
+
+        return dataset;
+    }
+
+    /* MWMWMWMWMMWMWMWMWMWMWMWMWMWMWMWMWMMWMWMWMWMWMWMWMWMWMWMWMWMMWMWMWMWMWMWMWMWMWMWMWMWMMWMWMWMWMWMWMWMWMWMWMWMWMMWMWMWMWMWMWMWMW
+       MWMWMWMWMMWMWMWMWMWMWMWMWMWMWMWMWMMWMWMWMWMWMWMWMWMWMWMWMWMMWMWMWMWMWMWMWMWMWMWMWMWMMWMWMWMWMWMWMWMWMWMWMWMWMMWMWMWMWMWMWMWMW
+     */
+
+
+    /*
         //Second: tokenize reviews and filter out unknown words
         List<List<String>> allTokens = new ArrayList<>(reviews.size());
         int maxLength = 0;
@@ -153,7 +152,7 @@ public class MultiClassIterator implements DataSetIterator {
         }
 
         return new DataSet(features, labels, featuresMask, labelsMask);
-    }
+    }*/
 
     @Override
     public int totalExamples() {
