@@ -100,14 +100,14 @@ public class SequenceVectorsTextExample {
             Now we can build AbstractVectors model, that suits our needs
          */
         SequenceVectors<VocabWord> vectors = new SequenceVectors.Builder<VocabWord>(new VectorsConfiguration())
-                // minimum number of occurencies for each element in training code.corpus. All elements below this value will be ignored
+                // minimum number of occurencies for each element in training corpus. All elements below this value will be ignored
                 // Please note: this value has effect only if resetModel() set to TRUE, for internal model building. Otherwise it'll be ignored, and actual vocabulary content will be used
                 .minWordFrequency(5)
 
                 // WeightLookupTable
                 .lookupTable(lookupTable)
 
-                // abstract iterator that covers training code.corpus
+                // abstract iterator that covers training corpus
                 .iterate(sequenceIterator)
 
                 // vocabulary built prior to modelling
@@ -120,7 +120,7 @@ public class SequenceVectorsTextExample {
                 // number of iterations over batch
                 .iterations(1)
 
-                // number of iterations over whole training code.corpus
+                // number of iterations over whole training corpus
                 .epochs(1)
 
                 // if set to true, vocabulary will be built from scratches internally
@@ -147,7 +147,7 @@ public class SequenceVectorsTextExample {
         vectors.fit();
 
         /*
-            As soon as fit() exits, model considered built, and we can code.test it.
+            As soon as fit() exits, model considered built, and we can test it.
             Please note: all similarity context is handled via SequenceElement's labels, so if you're using AbstractVectors to build models for complex
             objects/relations please take care of Labels uniqueness and meaning for yourself.
          */

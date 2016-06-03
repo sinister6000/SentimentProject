@@ -74,7 +74,7 @@ public class VideoClassificationExample {
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                 .iterations(1)
                 .learningRate(0.04)
-                .list(6)
+                .list()
                 .layer(0, new ConvolutionLayer.Builder(10, 10)
                         .nIn(3) //3 channels: RGB
                         .nOut(30)
@@ -141,7 +141,7 @@ public class VideoClassificationExample {
             System.out.println("Layer " + i + " nParams = " + net.getLayer(i).numParams());
         }
 
-        int testStartIdx = (int) (0.9 * N_VIDEOS_TO_GENERATE);  //90% in code.train, 10% in code.test
+        int testStartIdx = (int) (0.9 * N_VIDEOS_TO_GENERATE);  //90% in train, 10% in test
         int nTest = N_VIDEOS_TO_GENERATE - testStartIdx;
 
         //Conduct learning
@@ -177,7 +177,7 @@ public class VideoClassificationExample {
     }
 
     private static void evaluatePerformance(MultiLayerNetwork net, int testStartIdx, int nExamples, String outputDirectory) throws Exception {
-        //Assuming here that the full code.test data set doesn't fit in memory -> load 10 examples at a time
+        //Assuming here that the full test data set doesn't fit in memory -> load 10 examples at a time
         Map<Integer, String> labelMap = new HashMap<>();
         labelMap.put(0, "circle");
         labelMap.put(1, "square");

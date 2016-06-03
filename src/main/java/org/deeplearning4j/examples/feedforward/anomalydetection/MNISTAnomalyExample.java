@@ -44,26 +44,21 @@ public class MNISTAnomalyExample {
         MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
                 .seed(12345)
                 .iterations(1)
+                .weightInit(WeightInit.XAVIER)
+                .updater(Updater.ADAGRAD)
+                .activation("relu")
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                 .learningRate(0.05)
                 .regularization(true).l2(0.0001)
-                .list(4)
+                .list()
                 .layer(0, new DenseLayer.Builder().nIn(784).nOut(250)
-                        .weightInit(WeightInit.XAVIER)
-                        .updater(Updater.ADAGRAD)
-                        .activation("relu").build())
+                        .build())
                 .layer(1, new DenseLayer.Builder().nIn(250).nOut(10)
-                        .weightInit(WeightInit.XAVIER)
-                        .updater(Updater.ADAGRAD)
-                        .activation("relu").build())
+                        .build())
                 .layer(2, new DenseLayer.Builder().nIn(10).nOut(250)
-                        .weightInit(WeightInit.XAVIER)
-                        .updater(Updater.ADAGRAD)
-                        .activation("relu").build())
+                        .build())
                 .layer(3, new OutputLayer.Builder().nIn(250).nOut(784)
-                        .weightInit(WeightInit.XAVIER)
-                        .updater(Updater.ADAGRAD)
-                        .activation("relu").lossFunction(LossFunctions.LossFunction.MSE)
+                        .lossFunction(LossFunctions.LossFunction.MSE)
                         .build())
                 .pretrain(false).backprop(true)
                 .build();
@@ -71,7 +66,7 @@ public class MNISTAnomalyExample {
         MultiLayerNetwork net = new MultiLayerNetwork(conf);
         net.setListeners(Collections.singletonList((IterationListener) new ScoreIterationListener(1)));
 
-        //Load data and split into training and testing sets. 40000 code.train, 10000 code.test
+        //Load data and split into training and testing sets. 40000 train, 10000 test
         DataSetIterator iter = new MnistDataSetIterator(100,50000,false);
 
         List<INDArray> featuresTrain = new ArrayList<>();
@@ -98,8 +93,8 @@ public class MNISTAnomalyExample {
             System.out.println("Epoch " + epoch + " complete");
         }
 
-        //Evaluate the model on code.test data
-        //Score each digit/example in code.test set separately
+        //Evaluate the model on test data
+        //Score each digit/example in test set separately
         //Then add triple (score, digit, and INDArray data) to lists and sort by score
         //This allows us to get best N and worst N digits for each type
         Map<Integer,List<Triple<Double,Integer,INDArray>>> listsByDigit = new HashMap<>();

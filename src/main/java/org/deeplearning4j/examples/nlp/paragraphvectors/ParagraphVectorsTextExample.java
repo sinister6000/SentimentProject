@@ -2,12 +2,12 @@ package org.deeplearning4j.examples.nlp.paragraphvectors;
 
 import org.deeplearning4j.models.paragraphvectors.ParagraphVectors;
 import org.deeplearning4j.models.word2vec.wordstore.inmemory.InMemoryLookupCache;
-import org.deeplearning4j.text.documentiterator.LabelsSource;
-import org.deeplearning4j.text.sentenceiterator.BasicLineIterator;
 import org.deeplearning4j.text.sentenceiterator.SentenceIterator;
 import org.deeplearning4j.text.tokenization.tokenizer.preprocessor.CommonPreprocessor;
 import org.deeplearning4j.text.tokenization.tokenizerfactory.DefaultTokenizerFactory;
 import org.deeplearning4j.text.tokenization.tokenizerfactory.TokenizerFactory;
+import org.deeplearning4j.text.sentenceiterator.BasicLineIterator;
+import org.deeplearning4j.text.documentiterator.LabelsSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
@@ -15,7 +15,7 @@ import org.springframework.core.io.ClassPathResource;
 import java.io.File;
 
 /**
- * This is example code for dl4j ParagraphVectors implementation. In this example we build distributed representation of all sentences present in training code.corpus.
+ * This is example code for dl4j ParagraphVectors implementation. In this example we build distributed representation of all sentences present in training corpus.
  * However, you still use it for training on labelled documents, using sets of LabelledDocument and LabelAwareIterator implementation.
  *
  * *************************************************************************************************
@@ -64,7 +64,7 @@ public class ParagraphVectorsTextExample {
         vec.fit();
 
         /*
-            In training code.corpus we have few lines that contain pretty close words involved.
+            In training corpus we have few lines that contain pretty close words invloved.
             These sentences should be pretty close to each other in vector space
 
             line 3721: This is my way .

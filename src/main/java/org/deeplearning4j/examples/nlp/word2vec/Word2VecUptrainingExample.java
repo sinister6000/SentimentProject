@@ -20,7 +20,7 @@ import java.util.Collection;
 /**
  * This is simple example for model weights update after initial vocab building.
  * If you have built your w2v model, and some time later you've decided that it can be 
- * additionally trained over new code.corpus, here's an example how to do it.
+ * additionally trained over new corpus, here's an example how to do it.
  *
  * PLEASE NOTE: At this moment, no new words will be added to vocabulary/model. 
  * Only weights update process will be issued. It's often called "frozen vocab training".
@@ -80,13 +80,13 @@ public class Word2VecUptrainingExample {
         WordVectorSerializer.writeFullModel(vec, "pathToSaveModel.txt");
 
         /*
-            Let's assume that some time passed, and now we have new code.corpus to be used to weights update.
-            Instead of building new model over joint code.corpus, we can use weights update mode.
+            Let's assume that some time passed, and now we have new corpus to be used to weights update.
+            Instead of building new model over joint corpus, we can use weights update mode.
          */
         Word2Vec word2Vec = WordVectorSerializer.loadFullModel("pathToSaveModel.txt");
 
         /*
-            PLEASE NOTE: after model is restored, it's still required to set SentenceIterator and TokenizerFactory, if you're going to code.train this model
+            PLEASE NOTE: after model is restored, it's still required to set SentenceIterator and TokenizerFactory, if you're going to train this model
          */
         SentenceIterator iterator = new BasicLineIterator(filePath);
         TokenizerFactory tokenizerFactory = new DefaultTokenizerFactory();

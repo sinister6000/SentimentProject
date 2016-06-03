@@ -31,13 +31,7 @@ import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 	"The Unreasonable Effectiveness of Recurrent Neural Networks"
 	http://karpathy.github.io/2015/05/21/rnn-effectiveness/
 
-	One minor difference between this example and Karpathy's work:
-	The LSTM architectures appear to differ somewhat. GravesLSTM has peephole connections that
-	Karpathy's char-rnn implementation appears to lack. See GravesLSTM javadoc for details.
-	There are pros and cons to both architectures (addition of peephole connections is a more powerful
-	model but has more parameters per unit), though they are not radically different in practice.
-
-	This example is set up to code.train on the Complete Works of William Shakespeare, downloaded
+	This example is set up to train on the Complete Works of William Shakespeare, downloaded
 	from Project Gutenberg. Training on other text sources should be relatively easy to implement.
 
     For more details on RNNs in DL4J, see the following:
@@ -60,7 +54,7 @@ public class GravesLSTMCharModellingExample {
 		// Initialization characters must all be in CharacterIterator.getMinimalCharacterSet() by default
 		Random rng = new Random(12345);
 
-		//Get a DataSetIterator that handles vectorization of text into something we can use to code.train
+		//Get a DataSetIterator that handles vectorization of text into something we can use to train
 		// our GravesLSTM network.
 		CharacterIterator iter = getShakespeareIterator(miniBatchSize,exampleLength);
 		int nOut = iter.totalOutcomes();
@@ -75,7 +69,7 @@ public class GravesLSTMCharModellingExample {
 			.l2(0.001)
             .weightInit(WeightInit.XAVIER)
             .updater(Updater.RMSPROP)
-			.list(3)
+			.list()
 			.layer(0, new GravesLSTM.Builder().nIn(iter.inputColumns()).nOut(lstmLayerSize)
 					.activation("tanh").build())
 			.layer(1, new GravesLSTM.Builder().nIn(lstmLayerSize).nOut(lstmLayerSize)
@@ -130,7 +124,7 @@ public class GravesLSTMCharModellingExample {
 	 * @param miniBatchSize Number of text segments in each training mini-batch
 	 * @param sequenceLength Number of characters in each text segment.
 	 */
-	private static CharacterIterator getShakespeareIterator(int miniBatchSize, int sequenceLength) throws Exception{
+	public static CharacterIterator getShakespeareIterator(int miniBatchSize, int sequenceLength) throws Exception{
 		//The Complete Works of William Shakespeare
 		//5.3MB file in UTF-8 Encoding, ~5.4 million characters
 		//https://www.gutenberg.org/ebooks/100
@@ -211,7 +205,7 @@ public class GravesLSTMCharModellingExample {
 	 * and return the generated class index.
 	 * @param distribution Probability distribution over classes. Must sum to 1.0
 	 */
-	private static int sampleFromDistribution( double[] distribution, Random rng ){
+	public static int sampleFromDistribution( double[] distribution, Random rng ){
 		double d = rng.nextDouble();
 		double sum = 0.0;
 		for( int i=0; i<distribution.length; i++ ){

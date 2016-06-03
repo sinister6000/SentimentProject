@@ -24,7 +24,7 @@ public class GloVeExample {
     public static void main(String[] args) throws Exception {
         File inputFile = new ClassPathResource("raw_sentences.txt").getFile();
 
-        // creating SentenceIterator wrapping our training code.corpus
+        // creating SentenceIterator wrapping our training corpus
         SentenceIterator iter = new BasicLineIterator(inputFile.getAbsolutePath());
 
         // Split on white spaces in the line to get words
@@ -45,7 +45,7 @@ public class GloVeExample {
                 // cutoff for weighting function
                 .xMax(100)
 
-                // training is done in batches taken from training code.corpus
+                // training is done in batches taken from training corpus
                 .batchSize(1000)
 
                 // if set to true, batches will be shuffled before training

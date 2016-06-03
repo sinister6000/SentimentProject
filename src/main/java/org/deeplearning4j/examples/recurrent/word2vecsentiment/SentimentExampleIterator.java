@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 /** This is a DataSetIterator that is specialized for the IMDB review dataset used in the Word2VecSentimentRNN example
- * It takes either the code.train or code.test set data from this data set, plus a WordVectors object (typically the Google News
+ * It takes either the train or test set data from this data set, plus a WordVectors object (typically the Google News
  * 300 pretrained vectors from https://code.google.com/p/word2vec/) and generates training data sets.<br>
  * Inputs/features: variable-length time series, where each word (with unknown words removed) is represented by
  * its Word2Vec vector representation.<br>
@@ -52,8 +52,8 @@ public class SentimentExampleIterator implements DataSetIterator {
         this.batchSize = batchSize;
         this.vectorSize = wordVectors.lookupTable().layerSize();
 
-        File p = new File(FilenameUtils.concat(dataDirectory, "aclImdb/" + (train ? "code/train" : "code/test") + "/pos/") + "/");
-        File n = new File(FilenameUtils.concat(dataDirectory, "aclImdb/" + (train ? "code/train" : "code/test") + "/neg/") + "/");
+        File p = new File(FilenameUtils.concat(dataDirectory, "aclImdb/" + (train ? "train" : "test") + "/pos/") + "/");
+        File n = new File(FilenameUtils.concat(dataDirectory, "aclImdb/" + (train ? "train" : "test") + "/neg/") + "/");
         positiveFiles = p.listFiles();
         negativeFiles = n.listFiles();
 
@@ -65,7 +65,6 @@ public class SentimentExampleIterator implements DataSetIterator {
     }
 
 
-
     @Override
     public DataSet next(int num) {
         if (cursor >= positiveFiles.length + negativeFiles.length) throw new NoSuchElementException();
@@ -75,7 +74,6 @@ public class SentimentExampleIterator implements DataSetIterator {
             throw new RuntimeException(e);
         }
     }
-
 
     private DataSet nextDataSet(int num) throws IOException {
         //First: load reviews to String. Alternate positive and negative reviews

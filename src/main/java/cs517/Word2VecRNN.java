@@ -1,6 +1,8 @@
 package cs517;
 
+import cs517.data.DataSetManager;
 import cs517.data.MultiClassIterator;
+import net.didion.jwnl.dictionary.database.DatabaseManager;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
@@ -75,8 +77,9 @@ public class Word2VecRNN {
         //Using AsyncDataSetIterator to do data loading in a separate thread; this may improve performance vs. waiting for data to load
         //WordVectors wordVectors = WordVectorSerializer.loadGoogleModel(new File(WORD_VECTORS_PATH), true, false);
         WordVectors wordVectors = WordVectorSerializer.loadTxtVectors(new File("sentimentWordVectors.txt"));
-        DataSetIterator train = new AsyncDataSetIterator(new MultiClassIterator(DATA_PATH,wordVectors,batchSize,truncateReviewsToLength,true),1);
-        DataSetIterator test = new AsyncDataSetIterator(new MultiClassIterator(DATA_PATH,wordVectors,100,truncateReviewsToLength,false),1);
+        DataSetManager dm = new DataSetManager();
+        DataSetIterator train = new MultiClassIterator(dm,batchSize,true);
+//        DataSetIterator test = new MultiClassIterator(DATA_PATH,wordVectors,100,truncateReviewsToLength,false);
 
         System.out.println("Starting training");
         for( int i=0; i<nEpochs; i++ ){

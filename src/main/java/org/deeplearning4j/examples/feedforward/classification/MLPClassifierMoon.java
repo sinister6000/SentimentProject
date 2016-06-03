@@ -49,7 +49,7 @@ public class MLPClassifierMoon {
         rr.initialize(new FileSplit(new File("src/main/resources/classification/moon_data_train.csv")));
         DataSetIterator trainIter = new RecordReaderDataSetIterator(rr,batchSize,0,2);
 
-        //Load the code.test/evaluation data:
+        //Load the test/evaluation data:
         RecordReader rrTest = new CSVRecordReader();
         rrTest.initialize(new FileSplit(new File("src/main/resources/classification/moon_data_eval.csv")));
         DataSetIterator testIter = new RecordReaderDataSetIterator(rrTest,batchSize,0,2);
@@ -61,7 +61,7 @@ public class MLPClassifierMoon {
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                 .learningRate(learningRate)
                 .updater(Updater.NESTEROVS).momentum(0.9)
-                .list(2)
+                .list()
                 .layer(0, new DenseLayer.Builder().nIn(numInputs).nOut(numHiddenNodes)
                         .weightInit(WeightInit.XAVIER)
                         .activation("relu")
@@ -75,7 +75,7 @@ public class MLPClassifierMoon {
 
         MultiLayerNetwork model = new MultiLayerNetwork(conf);
         model.init();
-        model.setListeners(new ScoreIterationListener(1));
+        model.setListeners(new ScoreIterationListener(100));    //Print score every 100 parameter updates
 
         for ( int n = 0; n < nEpochs; n++) {
             model.fit( trainIter );
@@ -133,7 +133,7 @@ public class MLPClassifierMoon {
         PlotUtil.plotTrainingData(ds.getFeatures(), ds.getLabels(), allXYPoints, predictionsAtXYPoints, nPointsPerAxis);
 
 
-        //Get code.test data, run the code.test data through the network to generate predictions, and plot those predictions:
+        //Get test data, run the test data through the network to generate predictions, and plot those predictions:
         rrTest.initialize(new FileSplit(new File("src/main/resources/classification/moon_data_eval.csv")));
         rrTest.reset();
         int nTestPoints = 1000;

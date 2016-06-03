@@ -1,19 +1,8 @@
 package cs517.data;
 
-//import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import org.apache.uima.resource.ResourceInitializationException;
 import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
 import org.deeplearning4j.models.embeddings.wordvectors.WordVectors;
-import org.deeplearning4j.text.tokenization.tokenizer.TokenPreProcess;
-import org.deeplearning4j.text.tokenization.tokenizer.Tokenizer;
-import org.deeplearning4j.text.tokenization.tokenizer.preprocessor.CommonPreprocessor;
-import org.deeplearning4j.text.tokenization.tokenizerfactory.DefaultTokenizerFactory;
-import org.deeplearning4j.text.tokenization.tokenizerfactory.TokenizerFactory;
-import org.deeplearning4j.text.tokenization.tokenizerfactory.UimaTokenizerFactory;
-import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.indexing.INDArrayIndex;
-import org.nd4j.linalg.indexing.NDArrayIndex;
 
 import java.io.*;
 import java.util.*;
@@ -109,8 +98,57 @@ public class DataSetManager {
      * @param vsm Vector Space Model that has all the wordVectors.
      */
 
-    public void reviews2wordVectors(WordVectors vsm, int maxLength) throws ResourceInitializationException {
-       TokenizerFactory tokenizerFactory = new DefaultTokenizerFactory();
+    public void reviews2wordVectors(int maxLength) throws ResourceInitializationException {
+
+        /**
+         * TODO: I think i see where your confusion came from. It's my bad, I was unclear about how
+         * and why I was changing the logic and flow of their example. And I chose variable names that
+         * added to confusion...
+         *
+         * Since their example was a main() that was meant to just be run once,
+         * they view the creation of a vector representation of a review
+         * as a part of iterating through the training corpus. While this is fine for running it once, I was
+         * anticipating having to try different NN configs, etc. So, I was thinking about creating the vector
+         * representations for the reviews earlier in the whole process and saving these vector reps inside
+         * the Review objects themselves. This is mainly to save time on recomputing these vectors every time
+         * we try a different NN. But also, conceptually, their SentimentExampleIterator is doing too much.
+         *
+         * To further confuse us, in SentimentExampleIterator, when they say "reviews" they are referring
+         * to a temporary mini-batch of reviews that they are preparing to send as input to the RNN.
+         * On top of all this, they are also creating the desired output vector (they call it temp[]).
+         * Finally, they combine the mini-batch of vectorized reviews, with a mini-batch of desired outputs
+         * in what is unfortunately called a "DataSet." DataSet is ambiguous too because it can refer to a single
+         * instance of an INPUT/OUTPUT pair, or a mini-batch of INPUTS/mini-batch of OUTPUTS collection.
+         */
+
+
+        /********************************************
+         *
+         * So let's move vectorizing over to the Review class.
+         * This function will just iterate through all
+         * Review objects and tell them to vectorize themselves.
+         *
+         ********************************************/
+//        final String WORD_VECTORS_PATH = "/users/Renita/GoogleNews-vectors-negative300.bin";
+//        final String WORD_VECTORS_PATH = "C:/Docs/School/CSUPomona/CS517/NLPProject/data/GoogleNews-vectors-negative300.bin";
+        final String WORD_VECTORS_PATH = "sentimentWordVectors.txt";
+        WordVectors googleWordVectors = null;
+        try {
+//            googleWordVectors = WordVectorSerializer.loadGoogleModel(new File(WORD_VECTORS_PATH), true);
+            googleWordVectors = WordVectorSerializer.loadTxtVectors(new File(WORD_VECTORS_PATH));
+        } catch (IOException e) {
+            System.err.println("Can't load Google Word Vectors from file.");
+            e.printStackTrace();
+        }
+        for (Review r : reviews.values()) {
+            r.vectorizeReview(googleWordVectors, maxLength);
+        }
+    } // end reviews2wordVectors()
+
+
+    /***********************************************************
+
+    TokenizerFactory tokenizerFactory = new DefaultTokenizerFactory();
         tokenizerFactory.setTokenPreProcessor(new CommonPreprocessor());
 //
 //        tokenizerFactory.setTokenPreProcessor(new TokenPreProcess() {
@@ -129,14 +167,15 @@ public class DataSetManager {
 
         List<List<String>> allTokens = new ArrayList<>(reviews.size());
 
-        for(Review r: reviews.values()){
-            List<String> tokens = tokenizerFactory.create(r.getReviewText()).getTokens();
+        for (Review r: reviews.values()){
+            List<String> tokens = tokenizerFactory.create(r.reviewText).getTokens();
             List<String> tokensFiltered = new ArrayList<>();
             for(String t : tokens ){
                 if(vsm.hasWord(t)) tokensFiltered.add(t);
             }
             allTokens.add(tokensFiltered);
         }
+
 
         int vectorSize = vsm.lookupTable().layerSize();
 
@@ -185,7 +224,7 @@ public class DataSetManager {
         // at this point, all Review objects in our DataSetManager have been updated to include their
         // vector representations
     }
-
+****************************************************/
 
     /**
      * Outputs reviews to dir, 1 review per file. Intended to be used for polarity.
@@ -331,27 +370,18 @@ public class DataSetManager {
 //        makeTrainingSplits();
 //        makeTestingSplits();
         DataSetManager trainingDM = new DataSetManager();
-        File ldf = new File("src/main/resources/movieData/maasDataset/labeledTrainData.tsv");
+        File ldf = new File("src/main/resources/movieData/toyMaasDataset/toyLabeledTrainData.tsv");
         trainingDM.importData(ldf);
-        File tdf = new File("src/main/resources/movieData/maasDataset/testData.tsv");
+        File tdf = new File("src/main/resources/movieData/toyMaasDataset/toyTestData.tsv");
         trainingDM.importData(tdf);
 
-        final String WORD_VECTORS_PATH = "/users/Renita/GoogleNews-vectors-negative300.bin";
-        //final String WORD_VECTORS_PATH = "C:/Docs/School/CSUPomona/CS517/NLPProject/data/GoogleNews-vectors-negative300";
-        //WordVectors googleWordVectors = WordVectorSerializer.loadGoogleModel(new File(WORD_VECTORS_PATH), false);
-        final String WORD_VECTORS_PATH = "C:/Docs/School/CSUPomona/CS517/NLPProject/data/GoogleNews-vectors-negative300";
-        WordVectors googleWordVectors = null;
-        try {
-            googleWordVectors = WordVectorSerializer.loadGoogleModel(new File(WORD_VECTORS_PATH), false);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        final String WORD_VECTORS_PATH = "/users/Renita/GoogleNews-vectors-negative300.bin";
+//        final String WORD_VECTORS_PATH = "C:/Docs/School/CSUPomona/CS517/NLPProject/data/GoogleNews-vectors-negative300";
+//        WordVectors googleWordVectors = WordVectorSerializer.loadGoogleModel(new File(WORD_VECTORS_PATH), false);
 
 
         int MAX_REVIEW_LENGTH = 100;  // 100 sentences
-        //trainingDM.reviews2wordVectors(googleWordVectors, MAX_REVIEW_LENGTH);
-
-        trainingDM.reviews2wordVectors();
+        trainingDM.reviews2wordVectors(MAX_REVIEW_LENGTH);
     }
 
 

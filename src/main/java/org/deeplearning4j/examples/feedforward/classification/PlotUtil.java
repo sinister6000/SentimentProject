@@ -54,7 +54,7 @@ public class PlotUtil {
     /**Plot the training data. Assume 2d input, classification output
      * @param features Training data features
      * @param labels Training data labels (one-hot representation)
-     * @param predicted Network predictions, for the code.test points
+     * @param predicted Network predictions, for the test points
      * @param backgroundIn sets of x,y points in input space, plotted in the background
      * @param backgroundOut results of network evaluation at points in x,y points in space
      * @param nDivisions Number of points (per axis, for the backgroundIn/backgroundOut arrays)

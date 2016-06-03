@@ -53,7 +53,7 @@ public class Word2VecSentimentRNN {
     /** Location to save and extract the training/testing data */
     public static final String DATA_PATH = FilenameUtils.concat(System.getProperty("java.io.tmpdir"), "dl4j_w2vSentiment/");
     /** Location (local file system) for the Google News vectors. Set this manually. */
-    public static final String WORD_VECTORS_PATH = "C:\\Docs\\School\\CSUPomona\\CS517\\NLPProject\\data\\GoogleNews-vectors-negative300.bin";
+    public static final String WORD_VECTORS_PATH = "/PATH/TO/YOUR/VECTORS/GoogleNews-vectors-negative300.bin";
 
 
     public static void main(String[] args) throws Exception {
@@ -62,7 +62,7 @@ public class Word2VecSentimentRNN {
 
         int batchSize = 50;     //Number of examples in each minibatch
         int vectorSize = 300;   //Size of the word vectors. 300 in the Google News model
-        int nEpochs = 1;        //Number of epochs (full passes of training data) to train on
+        int nEpochs = 5;        //Number of epochs (full passes of training data) to train on
         int truncateReviewsToLength = 300;  //Truncate reviews with length (# words) greater than this
 
         //Set up network configuration
@@ -73,7 +73,7 @@ public class Word2VecSentimentRNN {
                 .weightInit(WeightInit.XAVIER)
                 .gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue).gradientNormalizationThreshold(1.0)
                 .learningRate(0.0018)
-                .list(2)
+                .list()
                 .layer(0, new GravesLSTM.Builder().nIn(vectorSize).nOut(200)
                         .activation("softsign").build())
                 .layer(1, new RnnOutputLayer.Builder().activation("softmax")

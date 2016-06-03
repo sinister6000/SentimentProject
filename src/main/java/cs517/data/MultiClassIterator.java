@@ -28,7 +28,7 @@ import java.util.*;
 public class MultiClassIterator implements DataSetIterator {
     private DataSetManager dm;
     private final int batchSize;
-    private int vectorSize;
+//    private int vectorSize;
 
     private List<String> shuffledRevIDs;
     private int cursor;
@@ -41,12 +41,11 @@ public class MultiClassIterator implements DataSetIterator {
      * @param batchSize      Size of each minibatch for training
      * @param train          If true: return the training data. If false: return the testing data.
      */
-    public MultiClassIterator(DataSetManager dataSetManager, int batchSize, int vectorSize, boolean train)
+    public MultiClassIterator(DataSetManager dataSetManager, int batchSize, boolean train)
             throws IOException {
 
         this.dm = dataSetManager;
         this.batchSize = batchSize;
-        this.vectorSize = vectorSize;
 
         List<String> shuffledRevIDs = new ArrayList<>();
         shuffledRevIDs.addAll(dm.revIDs);
@@ -58,8 +57,9 @@ public class MultiClassIterator implements DataSetIterator {
 
     /**
      * Yields the next batch of DataSet objects. Basically, same as a typical next(), but can request more than one object at a time.
+     * We will not be doing mini-batches, so num will always be 1.
      *
-     * @param num the size of the batch to return
+     * @param num the size of the batch to return. Always 1
      * @return
      */
     @Override
@@ -73,35 +73,35 @@ public class MultiClassIterator implements DataSetIterator {
         int sentimentScore = rev.score;
         switch (sentimentScore) {
             case 0:
-                //b0.write(currRev.reviewText + "\n");
                 break;
             case 1:
-                label.putScalar([0], 1);
+                label.putScalar(0, 1);
                 break;
             case 2:
-                b2.write(currRev.id + "\t" + currRev.reviewText + "\n");
+                label.putScalar(1, 1);
                 break;
             case 3:
-                b3.write(currRev.id + "\t" + currRev.reviewText + "\n");
+                label.putScalar(2, 1);
                 break;
             case 4:
-                b4.write(currRev.id + "\t" + currRev.reviewText + "\n");
+                label.putScalar(3, 1);
                 break;
             case 7:
-                b7.write(currRev.id + "\t" + currRev.reviewText + "\n");
+                label.putScalar(4, 1);
                 break;
             case 8:
-                b8.write(currRev.id + "\t" + currRev.reviewText + "\n");
+                label.putScalar(5, 1);
                 break;
             case 9:
-                b9.write(currRev.id + "\t" + currRev.reviewText + "\n");
+                label.putScalar(6, 1);
                 break;
             case 10:
-                b10.write(currRev.id + "\t" + currRev.reviewText + "\n");
+                label.putScalar(7, 1);
                 break;
         }
 
-        DataSet result = new DataSet(rev.reviewVecs, ;
+        DataSet result = new DataSet(rev.reviewVecs, label, null, null);
+        return result;
     }
 
     /**
@@ -206,7 +206,7 @@ public class MultiClassIterator implements DataSetIterator {
 
     @Override
     public int inputColumns() {
-        return vectorSize;
+        return 100;
     }
 
     @Override
@@ -221,7 +221,7 @@ public class MultiClassIterator implements DataSetIterator {
 
     @Override
     public int batch() {
-        return batchSize;
+        return 1;
     }
 
     @Override
@@ -251,7 +251,7 @@ public class MultiClassIterator implements DataSetIterator {
 
     @Override
     public DataSet next() {
-        return next(batchSize);
+        return next(1);
     }
 
     @Override

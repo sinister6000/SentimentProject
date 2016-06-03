@@ -30,8 +30,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**Early stopping example on a subset of MNIST
- * Idea: given a small subset of MNIST (1000 examples + 500 code.test set), conduct training and get the parameters that
- * have the minimum code.test set loss
+ * Idea: given a small subset of MNIST (1000 examples + 500 test set), conduct training and get the parameters that
+ * have the minimum test set loss
  * This is an over-simplified example, but the principles used here should apply in more realistic cases.
  *
  * For further details on early stopping, see http://deeplearning4j.org/earlystopping.html
@@ -54,20 +54,20 @@ public class EarlyStoppingMNIST {
                 .regularization(true).l2(0.0005)
                 .learningRate(0.02)
                 .weightInit(WeightInit.XAVIER)
+                .activation("relu")
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                 .updater(Updater.NESTEROVS).momentum(0.9)
-                .list(4)
+                .list()
                 .layer(0, new ConvolutionLayer.Builder(5, 5)
                         .nIn(nChannels)
                         .stride(1, 1)
                         .nOut(20).dropOut(0.5)
-                        .activation("relu")
                         .build())
                 .layer(1, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX)
                         .kernelSize(2, 2)
                         .stride(2, 2)
                         .build())
-                .layer(2, new DenseLayer.Builder().activation("relu")
+                .layer(2, new DenseLayer.Builder()
                         .nOut(500).build())
                 .layer(3, new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
                         .nOut(outputNum)
@@ -89,7 +89,7 @@ public class EarlyStoppingMNIST {
                 .epochTerminationConditions(new MaxEpochsTerminationCondition(50)) //Max of 50 epochs
                 .evaluateEveryNEpochs(1)
                 .iterationTerminationConditions(new MaxTimeIterationTerminationCondition(20, TimeUnit.MINUTES)) //Max of 20 minutes
-                .scoreCalculator(new DataSetLossCalculator(mnistTest512, true))     //Calculate code.test set score
+                .scoreCalculator(new DataSetLossCalculator(mnistTest512, true))     //Calculate test set score
                 .modelSaver(saver)
                 .build();
 

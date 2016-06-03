@@ -24,7 +24,7 @@ import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 /**
  * This example trains a RNN. WHen trained we only have to put the first
  * character of LEARNSTRING to the RNN, and it will recite the following chars
- * 
+ *
  * @author Peter Grossmann
  */
 public class BasicRNNExample {
@@ -59,7 +59,7 @@ public class BasicRNNExample {
 		builder.updater(Updater.RMSPROP);
 		builder.weightInit(WeightInit.XAVIER);
 
-		ListBuilder listBuilder = builder.list(HIDDEN_LAYER_CONT + 1);
+		ListBuilder listBuilder = builder.list();
 
 		// first difference, for rnns we need to use GravesLSTM.Builder
 		for (int i = 0; i < HIDDEN_LAYER_CONT; i++) {
@@ -115,10 +115,10 @@ public class BasicRNNExample {
 
 		// some epochs
 		for (int epoch = 0; epoch < 100; epoch++) {
-			
+
 			System.out.println("Epoch " + epoch);
-			
-			// code.train the data
+
+			// train the data
 			net.fit(trainingData);
 
 			// clear current stance from the last example

@@ -55,19 +55,16 @@ public class CSVExample {
         MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
                 .seed(seed)
                 .iterations(iterations)
+                .activation("tanh")
+                .weightInit(WeightInit.XAVIER)
                 .learningRate(0.1)
                 .regularization(true).l2(1e-4)
-                .list(3)
+                .list()
                 .layer(0, new DenseLayer.Builder().nIn(numInputs).nOut(3)
-                        .activation("tanh")
-                        .weightInit(WeightInit.XAVIER)
                         .build())
                 .layer(1, new DenseLayer.Builder().nIn(3).nOut(3)
-                        .activation("tanh")
-                        .weightInit(WeightInit.XAVIER)
                         .build())
                 .layer(2, new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
-                        .weightInit(WeightInit.XAVIER)
                         .activation("softmax")
                         .nIn(3).nOut(outputNum).build())
                 .backprop(true).pretrain(false)
@@ -81,13 +78,13 @@ public class CSVExample {
         //Normalize the full data set. Our DataSet 'next' contains the full 150 examples
         next.normalizeZeroMeanZeroUnitVariance();
         next.shuffle();
-        //split code.test and code.train
+        //split test and train
         SplitTestAndTrain testAndTrain = next.splitTestAndTrain(0.65);  //Use 65% of data for training
 
         DataSet trainingData = testAndTrain.getTrain();
         model.fit(trainingData);
 
-        //evaluate the model on the code.test set
+        //evaluate the model on the test set
         Evaluation eval = new Evaluation(3);
         DataSet test = testAndTrain.getTest();
         INDArray output = model.output(test.getFeatureMatrix());
