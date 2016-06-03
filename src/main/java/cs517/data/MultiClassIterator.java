@@ -28,6 +28,7 @@ import java.util.*;
 public class MultiClassIterator implements DataSetIterator {
     private DataSetManager dm;
     private final int batchSize;
+    private int vectorSize;
 
     private List<String> shuffledRevIDs;
     private int cursor;
@@ -40,11 +41,12 @@ public class MultiClassIterator implements DataSetIterator {
      * @param batchSize      Size of each minibatch for training
      * @param train          If true: return the training data. If false: return the testing data.
      */
-    public MultiClassIterator(DataSetManager dataSetManager, int batchSize, boolean train)
+    public MultiClassIterator(DataSetManager dataSetManager, int batchSize, int vectorSize, boolean train)
             throws IOException {
 
         this.dm = dataSetManager;
         this.batchSize = batchSize;
+        this.vectorSize = vectorSize;
 
         List<String> shuffledRevIDs = new ArrayList<>();
         shuffledRevIDs.addAll(dm.revIDs);
@@ -61,15 +63,45 @@ public class MultiClassIterator implements DataSetIterator {
      * @return
      */
     @Override
-    DataSet next(int num) {
+    public DataSet next(int num) {
         if (cursor >= dm.reviews.size()) {
             throw new NoSuchElementException();
         }
-        try {
-            return nextDataSet(num);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        String revID = shuffledRevIDs.get(cursor++);
+        Review rev = dm.reviews.get(revID);
+        INDArray label = Nd4j.zeros(8);
+        int sentimentScore = rev.score;
+        switch (sentimentScore) {
+            case 0:
+                //b0.write(currRev.reviewText + "\n");
+                break;
+            case 1:
+                label.putScalar([0], 1);
+                break;
+            case 2:
+                b2.write(currRev.id + "\t" + currRev.reviewText + "\n");
+                break;
+            case 3:
+                b3.write(currRev.id + "\t" + currRev.reviewText + "\n");
+                break;
+            case 4:
+                b4.write(currRev.id + "\t" + currRev.reviewText + "\n");
+                break;
+            case 7:
+                b7.write(currRev.id + "\t" + currRev.reviewText + "\n");
+                break;
+            case 8:
+                b8.write(currRev.id + "\t" + currRev.reviewText + "\n");
+                break;
+            case 9:
+                b9.write(currRev.id + "\t" + currRev.reviewText + "\n");
+                break;
+            case 10:
+                b10.write(currRev.id + "\t" + currRev.reviewText + "\n");
+                break;
         }
+
+        DataSet result = new DataSet(rev.reviewVecs, ;
     }
 
     /**
@@ -79,6 +111,8 @@ public class MultiClassIterator implements DataSetIterator {
      * @return batch of DataSet objects
      * @throws IOException
      */
+
+    /*
     private DataSet nextDataSet(int num) throws IOException {
         //First: load reviews to String. Alternate positive and negative reviews
         List<String> reviewIDs = new ArrayList<>(num);
@@ -92,22 +126,22 @@ public class MultiClassIterator implements DataSetIterator {
             }
         }
 
-        INDArray reviewVectors = Nd4j.create(reviewIDs.size(), 300, max)
+        INDArray reviewVectors = Nd4j.create(reviewIDs.size(), 300, max);
 
         // for each reviewID in reviewIDs:
         for (String revID : reviewIDs) {
             Review rev = dm.reviews.get(revID);
-            INDArray reviewVector =
+//            INDArray reviewVector =
 
         }
             // lookup the actual Review object in DataSetManager.
             // From the Review object, grab the vector representation and the score and construct a DataSet object
 
-        DataSet dataset = new DataSet(reviewVectors, labels, null, null);
+//        DataSet dataset = new DataSet(reviewVectors, labels, null, null);
 
         return dataset;
     }
-
+*/
 
 
 
@@ -228,18 +262,18 @@ public class MultiClassIterator implements DataSetIterator {
     /**
      * Convenience method for loading review to String
      */
-    public String loadReviewToString(int index) throws IOException {
-        File f;
-        if (index % 2 == 0) f = positiveFiles[index / 2];
-        else f = negativeFiles[index / 2];
-        return FileUtils.readFileToString(f);
-    }
-
-    /**
-     * Convenience method to get label for review
-     */
-    public boolean isPositiveReview(int index) {
-        return index % 2 == 0;
-    }
+//    public String loadReviewToString(int index) throws IOException {
+//        File f;
+//        if (index % 2 == 0) f = positiveFiles[index / 2];
+//        else f = negativeFiles[index / 2];
+//        return FileUtils.readFileToString(f);
+//    }
+//
+//    /**
+//     * Convenience method to get label for review
+//     */
+//    public boolean isPositiveReview(int index) {
+//        return index % 2 == 0;
+//    }
 
 }

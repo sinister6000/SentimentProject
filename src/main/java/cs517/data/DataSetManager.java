@@ -1,6 +1,5 @@
 package cs517.data;
 
-import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
 import org.deeplearning4j.models.embeddings.wordvectors.WordVectors;
 
@@ -14,8 +13,6 @@ import java.util.*;
 
 
 public class DataSetManager {
-
-
 
 
     Map<String, Review> reviews;
@@ -32,6 +29,7 @@ public class DataSetManager {
      * during the creation of Iterators to feed the neural net.
      */
     List<String> revIDs;
+
 
     public DataSetManager() {
         reviews = new HashMap<>();
@@ -99,7 +97,6 @@ public class DataSetManager {
      * @param vsm Vector Space Model that has all the wordVectors.
      */
     public void reviews2wordVectors(WordVectors vsm, int maxLength) {
-        StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
         // for each review in reviews
             // pass through Stanford CoreNLP, giving us sentences and tokens
 
@@ -268,7 +265,12 @@ public class DataSetManager {
         trainingDM.importData(tdf);
 
         final String WORD_VECTORS_PATH = "C:/Docs/School/CSUPomona/CS517/NLPProject/data/GoogleNews-vectors-negative300";
-        WordVectors googleWordVectors = WordVectorSerializer.loadGoogleModel(new File(WORD_VECTORS_PATH), false);
+        WordVectors googleWordVectors = null;
+        try {
+            googleWordVectors = WordVectorSerializer.loadGoogleModel(new File(WORD_VECTORS_PATH), false);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
 
         int MAX_REVIEW_LENGTH = 100;  // 100 sentences
