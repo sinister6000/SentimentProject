@@ -91,14 +91,24 @@ public class MultiClassIterator implements DataSetIterator {
                 break;
             }
         }
+
+        INDArray reviewVectors = Nd4j.create(reviewIDs.size(), 300, max)
+
         // for each reviewID in reviewIDs:
+        for (String revID : reviewIDs) {
+            Review rev = dm.reviews.get(revID);
+
+        }
             // lookup the actual Review object in DataSetManager.
             // From the Review object, grab the vector representation and the score and construct a DataSet object
 
-        DataSet dataset = new DataSet();
+        DataSet dataset = new DataSet(reviewVectors, labels, null, null);
 
         return dataset;
     }
+
+
+
 
     /* MWMWMWMWMMWMWMWMWMWMWMWMWMWMWMWMWMMWMWMWMWMWMWMWMWMWMWMWMWMMWMWMWMWMWMWMWMWMWMWMWMWMMWMWMWMWMWMWMWMWMWMWMWMWMMWMWMWMWMWMWMWMW
        MWMWMWMWMMWMWMWMWMWMWMWMWMWMWMWMWMMWMWMWMWMWMWMWMWMWMWMWMWMMWMWMWMWMWMWMWMWMWMWMWMWMMWMWMWMWMWMWMWMWMWMWMWMWMMWMWMWMWMWMWMWMW
@@ -156,7 +166,7 @@ public class MultiClassIterator implements DataSetIterator {
 
     @Override
     public int totalExamples() {
-        return positiveFiles.length + negativeFiles.length;
+        return dm.reviews.size();
     }
 
     @Override
@@ -166,7 +176,7 @@ public class MultiClassIterator implements DataSetIterator {
 
     @Override
     public int totalOutcomes() {
-        return 2;
+        return 8;
     }
 
     @Override
@@ -196,7 +206,7 @@ public class MultiClassIterator implements DataSetIterator {
 
     @Override
     public List<String> getLabels() {
-        return Arrays.asList("positive", "negative");
+        return Arrays.asList("10 (++++)", "9 (+++)", "8 (++)", "7 (+)", "4 (-)", "3 (--)", "2 (---)", "1 (----)");
     }
 
     @Override
