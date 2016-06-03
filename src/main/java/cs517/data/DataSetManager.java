@@ -1,7 +1,19 @@
 package cs517.data;
 
+//import edu.stanford.nlp.pipeline.StanfordCoreNLP;
+import org.apache.uima.resource.ResourceInitializationException;
 import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
 import org.deeplearning4j.models.embeddings.wordvectors.WordVectors;
+import org.deeplearning4j.text.tokenization.tokenizer.TokenPreProcess;
+import org.deeplearning4j.text.tokenization.tokenizer.Tokenizer;
+import org.deeplearning4j.text.tokenization.tokenizer.preprocessor.CommonPreprocessor;
+import org.deeplearning4j.text.tokenization.tokenizerfactory.DefaultTokenizerFactory;
+import org.deeplearning4j.text.tokenization.tokenizerfactory.TokenizerFactory;
+import org.deeplearning4j.text.tokenization.tokenizerfactory.UimaTokenizerFactory;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.indexing.INDArrayIndex;
+import org.nd4j.linalg.indexing.NDArrayIndex;
 
 import java.io.*;
 import java.util.*;
@@ -96,7 +108,67 @@ public class DataSetManager {
      *
      * @param vsm Vector Space Model that has all the wordVectors.
      */
-    public void reviews2wordVectors(WordVectors vsm, int maxLength) {
+
+    public void reviews2wordVectors(WordVectors vsm, int maxLength) throws ResourceInitializationException {
+       TokenizerFactory tokenizerFactory = new DefaultTokenizerFactory();
+        tokenizerFactory.setTokenPreProcessor(new CommonPreprocessor());
+//
+//        tokenizerFactory.setTokenPreProcessor(new TokenPreProcess() {
+//            @Override
+//            public String preProcess(String token) {
+//                token = token.toLowerCase();
+//                String base = preProcess(token);
+//                base = base.replace("\\d", "d");
+//                if(base.endsWith("ly") || base.endsWith("ing")) {
+//                    System.out.println("token");
+//                }
+//                    return base;
+//            }
+//        });
+
+
+        List<List<String>> allTokens = new ArrayList<>(reviews.size());
+
+        for(Review r: reviews.values()){
+            List<String> tokens = tokenizerFactory.create(r.getReviewText()).getTokens();
+            List<String> tokensFiltered = new ArrayList<>();
+            for(String t : tokens ){
+                if(vsm.hasWord(t)) tokensFiltered.add(t);
+            }
+            allTokens.add(tokensFiltered);
+        }
+
+        int vectorSize = vsm.lookupTable().layerSize();
+
+        //Here: we have reviews.size() examples of varying lengths
+        INDArray featureVector = Nd4j.create(reviews.size(), vectorSize, maxLength);
+        INDArray labels = Nd4j.create(reviews.size(), 2, maxLength);    //Two labels: positive or negative
+
+        INDArray featuresMask = Nd4j.zeros(reviews.size(), maxLength);
+        INDArray labelsMask = Nd4j.zeros(reviews.size(), maxLength);
+
+        int[] temp = new int[2];
+        for( int i=0; i<reviews.size(); i++ ){
+            List<String> tokens = allTokens.get(i);
+            temp[0] = i;
+            //Get word vectors for each word in review, and put them in the training data
+            for( int j=0; j<tokens.size() && j<maxLength; j++ ){
+                String token = tokens.get(j);
+                INDArray vector = vsm.getWordVectorMatrix(token);
+                featureVector.put(new INDArrayIndex[]{NDArrayIndex.point(i), NDArrayIndex.all(), NDArrayIndex.point(j)}, vector);
+
+                temp[1] = j;
+                featuresMask.putScalar(temp, 1.0);  //Word is present (not padding) for this example + time step -> 1.0 in features mask
+            }
+        }
+
+//        for (Review r: reviews.values()) {
+//            Tokenizer tokenizer = tokenizerFactory.tokenize(r.getReviewText());
+//            List<String> tokens = tokenizer.getTokens();
+//
+//        }
+
+        //StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
         // for each review in reviews
             // pass through Stanford CoreNLP, giving us sentences and tokens
 
@@ -255,7 +327,7 @@ public class DataSetManager {
         testingDM.toMultiClassFiles(pathForSplitData, false);
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException, ResourceInitializationException {
 //        makeTrainingSplits();
 //        makeTestingSplits();
         DataSetManager trainingDM = new DataSetManager();
@@ -264,6 +336,9 @@ public class DataSetManager {
         File tdf = new File("src/main/resources/movieData/maasDataset/testData.tsv");
         trainingDM.importData(tdf);
 
+        final String WORD_VECTORS_PATH = "/users/Renita/GoogleNews-vectors-negative300.bin";
+        //final String WORD_VECTORS_PATH = "C:/Docs/School/CSUPomona/CS517/NLPProject/data/GoogleNews-vectors-negative300";
+        //WordVectors googleWordVectors = WordVectorSerializer.loadGoogleModel(new File(WORD_VECTORS_PATH), false);
         final String WORD_VECTORS_PATH = "C:/Docs/School/CSUPomona/CS517/NLPProject/data/GoogleNews-vectors-negative300";
         WordVectors googleWordVectors = null;
         try {
@@ -274,8 +349,11 @@ public class DataSetManager {
 
 
         int MAX_REVIEW_LENGTH = 100;  // 100 sentences
-        trainingDM.reviews2wordVectors(googleWordVectors, MAX_REVIEW_LENGTH);
+        //trainingDM.reviews2wordVectors(googleWordVectors, MAX_REVIEW_LENGTH);
+
+        trainingDM.reviews2wordVectors();
     }
+
 
 
 }
