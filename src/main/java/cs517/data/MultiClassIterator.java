@@ -97,6 +97,7 @@ public class MultiClassIterator implements DataSetIterator {
         // for each reviewID in reviewIDs:
         for (String revID : reviewIDs) {
             Review rev = dm.reviews.get(revID);
+            INDArray reviewVector =
 
         }
             // lookup the actual Review object in DataSetManager.
