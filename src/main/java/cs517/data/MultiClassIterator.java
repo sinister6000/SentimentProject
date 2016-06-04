@@ -3,10 +3,6 @@ package cs517.data;
 import cs517.data.DataSetManager;
 import org.apache.commons.io.FileUtils;
 import org.deeplearning4j.datasets.iterator.DataSetIterator;
-import org.deeplearning4j.models.embeddings.wordvectors.WordVectors;
-import org.deeplearning4j.text.tokenization.tokenizer.preprocessor.CommonPreprocessor;
-import org.deeplearning4j.text.tokenization.tokenizerfactory.DefaultTokenizerFactory;
-import org.deeplearning4j.text.tokenization.tokenizerfactory.TokenizerFactory;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.DataSetPreProcessor;
@@ -19,61 +15,103 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * Created by Renita on 5/24/16.
- */
-
-/**
- * Iterator for a DataSetManager
+ * This is a DataSetIterator that is specialized for the Stanford Maas IMDB review dataset.
+ * It takes a DataSetManager and a list of Review IDs and generates training data sets for a neural network.
+ * The training sets are structured as follows:
+ *      Inputs/features: variable-length time series of vectors. Each vector represents a sentence
+ *                       in the review.
+ *      Labels/target: a single classification (1, 2, 3, 4, 7, 8, 9, or 10) represented as a
+ *                     one-hot set. This is the desired output of the neural network.
  */
 public class MultiClassIterator implements DataSetIterator {
     private DataSetManager dm;
-    private final int batchSize;
-//    private int vectorSize;
-
-    private List<String> shuffledRevIDs;
-    private int cursor;
+    private int batchSize;
+    private List<String> reviewsToIterate;
+    private int cursor = 0;
 
 
     /**
      * Constructor
      *
-     * @param dataSetManager the DataSetManager object that contains all the reviews
-     * @param batchSize      Size of each minibatch for training
-     * @param train          If true: return the training data. If false: return the testing data.
+     * @param dataSetManager    contains the actual Review objects needed to create data sets
+     * @param fromIndex         low endpoint (inclusive) of the subList of revIDs
+     * @param toIndex           high endpoint (exclusive) of the subList of revIDs
+     * @param batchSize         mini-batch size
+     * @throws IOException
      */
-    public MultiClassIterator(DataSetManager dataSetManager, int batchSize, boolean train)
-            throws IOException {
-
+    public MultiClassIterator(DataSetManager dataSetManager, int fromIndex, int toIndex, int batchSize) {
         this.dm = dataSetManager;
         this.batchSize = batchSize;
-
-        List<String> shuffledRevIDs = new ArrayList<>();
-        shuffledRevIDs.addAll(dm.revIDs);
-        Collections.shuffle(shuffledRevIDs);
-
-        cursor = 0;
+        reviewsToIterate = dm.shuffledRevIDs.subList(fromIndex, toIndex);
     }
 
 
     /**
-     * Yields the next batch of DataSet objects. Basically, same as a typical next(), but can request more than one object at a time.
-     * We will not be doing mini-batches, so num will always be 1.
+     * Yields a mini-batch Data Set.
      *
-     * @param num the size of the batch to return. Always 1
+     * @param num the number of reviews being returned in this Data Set
      * @return
      */
     @Override
     public DataSet next(int num) {
-        if (cursor >= dm.reviews.size()) {
+        if (cursor >= reviewsToIterate.size()) {
             throw new NoSuchElementException();
         }
-        String revID = shuffledRevIDs.get(cursor++);
-        Review rev = dm.reviews.get(revID);
+        return nextDataSet(num);
+    }
+
+
+    /**
+     * Helper function for above.
+     *
+     * @param num
+     * @return
+     */
+    private DataSet nextDataSet(int num) {
+        // create lists to store reviews and corresponding labels
+        List<INDArray> minibatchOfReviewVecs = new ArrayList<>(num);
+        List<INDArray> minibatchOfLabels = new ArrayList<>(num);
+
+        // use cursor to access revIDs from reviewsToIterate
+        // use the revID to gather vectors, etc.
+        for (int i = 0; i < num && cursor < totalExamples(); i++) {
+            String revID = reviewsToIterate.get(cursor);
+            Review rev = dm.reviews.get(revID);
+
+            minibatchOfReviewVecs.add(rev.reviewVecs);
+            minibatchOfLabels.add(oneHot(rev.score));
+        }
+
+        // create data for training
+
+        // Because we are dealing with reviews of different lengths and only one output at the final time step: use padding arrays
+        // Mask arrays contain 1 if data is present at that time step for that example, or 0 if data is just padding
+        INDArray featuresMask = Nd4j.zeros(reviews.size(), maxLength);
+        INDArray labelsMask = Nd4j.zeros(reviews.size(), maxLength);
+
+
+
+        DataSet result = new DataSet(rev.reviewVecs, label, null, null);
+        return result;
+    }
+
+    /**
+     * Helper function to turn a movie rating score into a one-hot vector.
+     *    1 -> [ 1 0 0 0 0 0 0 0 ]
+     *    2 -> [ 0 1 0 0 0 0 0 0 ]
+     *    3 -> [ 0 0 1 0 0 0 0 0 ]
+     *    4 -> [ 0 0 0 1 0 0 0 0 ]
+     *    7 -> [ 0 0 0 0 1 0 0 0 ]
+     *    8 -> [ 0 0 0 0 0 1 0 0 ]
+     *    9 -> [ 0 0 0 0 0 0 1 0 ]
+     *   10 -> [ 0 0 0 0 0 0 0 1 ]
+     * 
+     * @param score
+     * @return
+     */
+    private INDArray oneHot(int score) {
         INDArray label = Nd4j.zeros(8);
-        int sentimentScore = rev.score;
-        switch (sentimentScore) {
-            case 0:
-                break;
+        switch (score) {
             case 1:
                 label.putScalar(0, 1);
                 break;
@@ -99,9 +137,7 @@ public class MultiClassIterator implements DataSetIterator {
                 label.putScalar(7, 1);
                 break;
         }
-
-        DataSet result = new DataSet(rev.reviewVecs, label, null, null);
-        return result;
+        return label;
     }
 
     /**

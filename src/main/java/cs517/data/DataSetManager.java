@@ -1,6 +1,7 @@
 package cs517.data;
 
 import org.apache.uima.resource.ResourceInitializationException;
+import org.deeplearning4j.datasets.iterator.DataSetIterator;
 import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
 import org.deeplearning4j.models.embeddings.wordvectors.WordVectors;
 
@@ -29,13 +30,16 @@ public class DataSetManager {
      * revIDs is just a list of review IDs. This will be used to create a random ordering of the reviews
      * during the creation of Iterators to feed the neural net.
      */
-    List<String> revIDs;
+    Set<String> revIDs;
+
+    List<String> shuffledRevIDs;
 
 
     public DataSetManager() {
         reviews = new HashMap<>();
         ratingBins = new HashMap<>();
-        revIDs = new ArrayList<>();
+        revIDs = new HashSet<>();
+        shuffledRevIDs = new ArrayList<>();
     }
 
     /**
@@ -43,46 +47,97 @@ public class DataSetManager {
      *
      * @param f File of reviews
      */
-    public void importData(File f) {
-        try {
-            Scanner sc = new Scanner(f);
-            sc.useDelimiter(System.getProperty("line.separator"));
-            String currentLine = sc.next();   // skip over 1st header line
-            Review currentReview;
-            while (sc.hasNext()) {
-                currentLine = sc.next();
-                currentReview = new Review(currentLine);
+    public void importData(File f) throws IOException {
+//        final String WORD_VECTORS_PATH = "C:/Docs/School/CSUPomona/CS517/NLPProject/data/GoogleNews-vectors-negative300.bin";
+//        WordVectors vsm = WordVectorSerializer.loadGoogleModel(new File(WORD_VECTORS_PATH), true, false);
+        final String WORD_VECTORS_PATH = "sentimentWordVectors.txt";
+        WordVectors vsm = WordVectorSerializer.loadTxtVectors(new File(WORD_VECTORS_PATH));
 
-                // store Review in map
-                reviews.put(currentReview.id, currentReview);
+        Scanner sc = new Scanner(f);
+        sc.useDelimiter(System.getProperty("line.separator"));
+        String currentLine = sc.next();   // skip over 1st header line
+        Review currentReview;
+        while (sc.hasNext()) {
+            currentLine = sc.next();
+            currentReview = new Review(currentLine);
+            currentReview.vectorizeReview(vsm, maxSentences);
 
-                // add currentReview to proper bin, else create a bin.
-                Integer currentScore = currentReview.score;
-                if (ratingBins.containsKey(currentScore)) {
-                    Set<String> temp = ratingBins.get(currentScore);
-                    temp.add(currentReview.id);
-                    ratingBins.put(currentScore, temp);
-                } else {
-                    Set<String> temp = new HashSet<>();
-                    temp.add(currentReview.id);
-                    ratingBins.put(currentScore, temp);
-                }
+            // store Review in map
+            reviews.put(currentReview.id, currentReview);
 
-                // add ID to list
-                revIDs.add(currentReview.id);
+            // add currentReview to proper bin, else create a bin.
+            Integer currentScore = currentReview.score;
+            if (ratingBins.containsKey(currentScore)) {
+                Set<String> temp = ratingBins.get(currentScore);
+                temp.add(currentReview.id);
+                ratingBins.put(currentScore, temp);
+            } else {
+                Set<String> temp = new HashSet<>();
+                temp.add(currentReview.id);
+                ratingBins.put(currentScore, temp);
             }
-
-        } catch (FileNotFoundException e) {
-            System.err.println("importData could not find file");
-            e.printStackTrace();
+            // add ID to list
+            revIDs.add(currentReview.id);
         }
-
         // quick check to see if import went ok
         if (reviews.size() != revIDs.size()) {
             System.out.println("Warning: Size mismatch between reviews and revIDs!!!!");
         }
+
     }
 
+    /**
+     * Provides a group of three iterators, which when combined, include all the reviews.
+     * First, random shuffles the reviews, then assigns subarrays of the reviews to the
+     * training set, cross validation set, and testing set in the following proportions:
+     *      60% - training set
+     *      20% - cross validation set
+     *      20% - testing set
+     *
+     * @param batchSize size of mini-batch for GravesLSTM network layer.
+     * @return [training iter, cv iter, testing iter]
+     */
+    public List<DataSetIterator> makeIterators(int batchSize) {
+        shuffledRevIDs = new ArrayList<>(revIDs);
+        Collections.shuffle(shuffledRevIDs);
+
+        int revCount = revIDs.size();
+        int trainEnd = (int) (0.6 * revCount);
+        int cvStart = trainEnd + 1;
+        int cvEnd = (int) (0.8 * revCount);
+        int testStart = cvEnd + 1;
+        int testEnd = revCount;
+
+        DataSetIterator trainIter = makeDataSetIterator(0, trainEnd, batchSize);
+        DataSetIterator cvIter = makeDataSetIterator(cvStart, cvEnd, batchSize);
+        DataSetIterator testIter = makeDataSetIterator(testStart, testEnd, batchSize);
+
+        List<DataSetIterator> myIterators = new ArrayList<>();
+        myIterators.add(trainIter);
+        myIterators.add(cvIter);
+        myIterators.add(testIter);
+
+        return myIterators;
+    }
+
+
+    /**
+     * Creates an iterator from a subList of shuffledRevIDs.
+     *
+     * @param fromIndex         low endpoint (inclusive) of the subList
+     * @param toIndex           high endpoint (exclusive) of the subList
+     * @param batchSize         mini-batch size
+     * @return DataSetIterator  iterator that will yield the reviews whose IDs are contained
+     *                          within the subList.
+     */
+    private DataSetIterator makeDataSetIterator(int fromIndex, int toIndex, int batchSize) {
+        /**
+         * TODO: adapt MultiClassIterator into this form
+         */
+
+
+        return new MultiClassIterator(this, fromIndex, toIndex, batchSize);
+    }
 
     /**
      * For all reviews in DataSetManager, convert the review text to its wordVector representation.
@@ -98,7 +153,7 @@ public class DataSetManager {
      * @param vsm Vector Space Model that has all the wordVectors.
      */
 
-    public void reviews2wordVectors(int maxLength) throws ResourceInitializationException {
+//    public void reviews2wordVectors(int maxLength) throws ResourceInitializationException {
 
         /**
          * TODO: I think i see where your confusion came from. It's my bad, I was unclear about how
@@ -129,21 +184,31 @@ public class DataSetManager {
          * Review objects and tell them to vectorize themselves.
          *
          ********************************************/
+
+        /********************************************************
+         * Actually, this is probably better as part of the importData() method.
+         * Since we already perform an entire pass through all the reviews in order to import,
+         * we can vectorize during that pass-through.
+         ******************************************************
+         */
 //        final String WORD_VECTORS_PATH = "/users/Renita/GoogleNews-vectors-negative300.bin";
 //        final String WORD_VECTORS_PATH = "C:/Docs/School/CSUPomona/CS517/NLPProject/data/GoogleNews-vectors-negative300.bin";
-        final String WORD_VECTORS_PATH = "sentimentWordVectors.txt";
-        WordVectors googleWordVectors = null;
-        try {
-//            googleWordVectors = WordVectorSerializer.loadGoogleModel(new File(WORD_VECTORS_PATH), true);
-            googleWordVectors = WordVectorSerializer.loadTxtVectors(new File(WORD_VECTORS_PATH));
-        } catch (IOException e) {
-            System.err.println("Can't load Google Word Vectors from file.");
-            e.printStackTrace();
-        }
-        for (Review r : reviews.values()) {
-            r.vectorizeReview(googleWordVectors, maxLength);
-        }
-    } // end reviews2wordVectors()
+//        final String WORD_VECTORS_PATH = "sentimentWordVectors.txt";
+//        WordVectors googleWordVectors = null;
+//        try {
+////            googleWordVectors = WordVectorSerializer.loadGoogleModel(new File(WORD_VECTORS_PATH), true);
+//            googleWordVectors = WordVectorSerializer.loadTxtVectors(new File(WORD_VECTORS_PATH));
+//        } catch (IOException e) {
+//            System.err.println("Can't load Google Word Vectors from file.");
+//            e.printStackTrace();
+//        }
+//        for (Review r : reviews.values()) {
+//            r.vectorizeReview(googleWordVectors, maxLength);
+//        }
+//    } // end reviews2wordVectors()
+
+
+
 
 
     /***********************************************************
@@ -380,10 +445,8 @@ public class DataSetManager {
 //        WordVectors googleWordVectors = WordVectorSerializer.loadGoogleModel(new File(WORD_VECTORS_PATH), false);
 
 
-        int MAX_REVIEW_LENGTH = 100;  // 100 sentences
-        trainingDM.reviews2wordVectors(MAX_REVIEW_LENGTH);
+//        int MAX_REVIEW_LENGTH = 100;  // 100 sentences
+//        trainingDM.reviews2wordVectors(MAX_REVIEW_LENGTH);
     }
-
-
 
 }

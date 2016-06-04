@@ -27,14 +27,7 @@ import java.util.regex.Pattern;
  * we tokenize and translate to word2vec vectors.
  */
 
-
-
-
-
 public class Review {
-
-
-    private static int nextID = 0;
 
     String id;
     int score;
@@ -48,10 +41,10 @@ public class Review {
 
     /**
      * Constructs a Review from a tab delimited String.
-     * @param parsedReview a review parsed from the Maas dataset
+     * @param lineFromMaas a review from the Maas dataset (1 line per review)
      */
-    public Review(String parsedReview) {
-        Scanner sc = new Scanner(parsedReview);
+    public Review(String lineFromMaas) {
+        Scanner sc = new Scanner(lineFromMaas);
         Pattern p = Pattern.compile("\"(\\d+_(\\d+))\"\\t([01])?\\t?\"(.*)\"$");
         sc.findInLine(p);
         MatchResult result = sc.match();
@@ -67,8 +60,14 @@ public class Review {
         }
     }
 
-
-    public void vectorizeReview(WordVectors vsm, int maxSentences) {
+    /**
+     * Converts reviewText to vector form. This represents a review as a time
+     * series of sentences for input into a GravesLSTM layer.
+     *
+     * @param vsm vector space model used to vectorize the Review
+     * @param maxSentences
+     */
+    void vectorizeReview(WordVectors vsm, int maxSentences) {
         System.out.println("vectorizing review " + id);
 
         int vectorSize = vsm.lookupTable().layerSize();
@@ -133,7 +132,6 @@ public class Review {
             if (sentenceCursor >= maxSentences) {
                 break;
             }
-
         }
 
         // set reviewVecs to sentenceVecs.
