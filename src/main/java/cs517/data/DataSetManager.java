@@ -134,8 +134,6 @@ public class DataSetManager {
         /**
          * TODO: adapt MultiClassIterator into this form
          */
-
-
         return new MultiClassIterator(this, fromIndex, toIndex, batchSize);
     }
 

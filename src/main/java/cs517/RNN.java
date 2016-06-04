@@ -14,6 +14,7 @@ import org.deeplearning4j.nn.conf.layers.GravesLSTM;
 import org.deeplearning4j.nn.conf.layers.RnnOutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
+import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.ui.weights.HistogramIterationListener;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 
@@ -28,7 +29,10 @@ import java.io.UnsupportedEncodingException;
 public class RNN {
 
     private MultiLayerNetwork model;
-
+    private int batchSize = 32;
+    private int vectorSize = 100;
+    private int nEpochs = 5;
+    private int maxLength = 100;
 
     public RNN() {
         int vectorSize = 100;
@@ -40,15 +44,21 @@ public class RNN {
                 .gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue)
                 .gradientNormalizationThreshold(1.0)
                 .learningRate(0.0018)
-                .list(2)
-                .layer(0, new GravesLSTM.Builder().nIn(vectorSize).nOut(200)
-                        .activation("softsign").build())
-                .layer(1, new GravesLSTM.Builder().nIn(vectorSize).nOut(200)
-                        .activation("softsign").build())
-                .layer(2, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MCXENT).activation("softmax")
-                        .weightInit(WeightInit.XAVIER).nIn(prevLayerSize).nOut(8).build())
+                .list()
+                .layer(0, new GravesLSTM.Builder()
+                        .nIn(vectorSize).nOut(200)
+                        .activation("softsign")
+                        .build())
+                .layer(1, new GravesLSTM.Builder().nIn(200).nOut(200)
+                        .activation("softsign")
+                        .build())
+                .layer(2, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MCXENT)
+                        .activation("softmax")
+                        .weightInit(WeightInit.XAVIER)
+                        .nIn(200)
+                        .nOut(8)
+                        .build())
                 .pretrain(false).backprop(true).build();
-
 
 
         model = new MultiLayerNetwork(conf);
