@@ -91,15 +91,15 @@ public class MultiClassIterator implements DataSetIterator {
             INDArray revVectors = rev.reviewVecs;
             features.put(new INDArrayIndex[]{
                     NDArrayIndex.point(i),
-                    NDArrayIndex.interval(0, revVectors.shape()[1]),
-                    NDArrayIndex.all()}, revVectors);
+                    NDArrayIndex.all(),
+                    NDArrayIndex.interval(0, revVectors.shape()[1])}, revVectors);
             featuresMask.put(new INDArrayIndex[]{NDArrayIndex.interval(0, revVectors.shape()[1])}, 1.0);
 
             int revScore = rev.score;
             labels.put(new INDArrayIndex[]{
                     NDArrayIndex.point(i),
-                    NDArrayIndex.point(revVectors.shape()[1] - 1),
-                    NDArrayIndex.all()}, oneHot(revScore));
+                    NDArrayIndex.all(),
+                    NDArrayIndex.point(revVectors.shape()[1] - 1)}, oneHot(revScore));
             labelsMask.putScalar(revVectors.shape()[1] - 1, 1.0);
         }
 
