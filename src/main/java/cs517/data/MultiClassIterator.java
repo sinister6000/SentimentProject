@@ -30,7 +30,7 @@ public class MultiClassIterator implements DataSetIterator {
     private int batchSize;
     private List<String> reviewsToIterate;
     private int cursor;
-    private int vectorSize = 300;
+    private int vectorSize = 100;
     private int maxLength = 50;
 
 

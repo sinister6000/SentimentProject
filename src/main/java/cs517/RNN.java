@@ -18,12 +18,11 @@ public class RNN {
 
     MultiLayerNetwork net;
     int batchSize = 32;
-    int vectorSize = 300;
+    int vectorSize;
     int nEpochs = 5;
     int maxLength = 50;
 
     public RNN() {
-        int vectorSize = 100;
         MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).iterations(1)
                 .updater(Updater.RMSPROP)
