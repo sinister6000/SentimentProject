@@ -29,7 +29,7 @@ public class MultiClassIterator implements DataSetIterator {
     private DataSetManager dm;
     private int batchSize;
     private List<String> reviewsToIterate;
-    private int cursor = 0;
+    private int cursor;
     private int vectorSize = 300;
     private int maxLength = 50;
 
@@ -86,9 +86,9 @@ public class MultiClassIterator implements DataSetIterator {
         INDArray featuresMask = Nd4j.zeros(num, maxLength);
         INDArray labelsMask = Nd4j.zeros(num, maxLength);
 
-        for (int i = 0; i < batchSize; ++i) {
-            Review rev = dm.reviews.get(reviewsToIterate.get(i));
-            INDArray revVectors = rev.reviewVecs;
+        for (int i = 0; i < batchSize && cursor < reviewsToIterate.size(); i++, cursor++) {
+            Review rev = dm.reviews.get(reviewsToIterate.get(cursor+ i));
+            INDArray revVectors = rev.reviewVecs.dup();
             features.put(new INDArrayIndex[]{
                     NDArrayIndex.point(i),
                     NDArrayIndex.all(),

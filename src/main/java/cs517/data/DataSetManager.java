@@ -106,9 +106,9 @@ public class DataSetManager {
 
         int revCount = revIDs.size();
         int trainEnd = (int) (0.6 * revCount);
-        int cvStart = trainEnd + 1;
+        int cvStart = trainEnd;
         int cvEnd = (int) (0.8 * revCount);
-        int testStart = cvEnd + 1;
+        int testStart = cvEnd;
         int testEnd = revCount;
 
         DataSetIterator trainIter = makeDataSetIterator(0, trainEnd, batchSize);
