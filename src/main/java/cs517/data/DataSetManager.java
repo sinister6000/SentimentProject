@@ -5,7 +5,10 @@ import org.deeplearning4j.datasets.iterator.DataSetIterator;
 import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
 import org.deeplearning4j.models.embeddings.wordvectors.WordVectors;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -60,7 +63,7 @@ public class DataSetManager {
         while (sc.hasNext()) {
             currentLine = sc.next();
             currentReview = new Review(currentLine);
-            currentReview.vectorizeReview(vsm, maxSentences);
+            currentReview.vectorizeReview(vsm, 75);
 
             // store Review in map
             reviews.put(currentReview.id, currentReview);
@@ -131,163 +134,9 @@ public class DataSetManager {
      *                          within the subList.
      */
     private DataSetIterator makeDataSetIterator(int fromIndex, int toIndex, int batchSize) {
-        /**
-         * TODO: adapt MultiClassIterator into this form
-         */
         return new MultiClassIterator(this, fromIndex, toIndex, batchSize);
     }
 
-    /**
-     * For all reviews in DataSetManager, convert the review text to its wordVector representation.
-     * Basically, we break the review up into sentences. Each sentence is made up of tokens. So, we look
-     * up a word vector for each token. Then, we can represent a sentence as the centroid of its words'
-     * vectors. Finally, the review is represented as a chain of sentences.
-     *
-     * Note that all sentences (regardless of length) are represented by a 300-dimensional vector.
-     * So a review is a (S x 300) dimensional INDArray, where S == # of sentences in the review.
-     *
-     * Store this INDArray in the Review object.
-     *
-     * @param vsm Vector Space Model that has all the wordVectors.
-     */
-
-//    public void reviews2wordVectors(int maxLength) throws ResourceInitializationException {
-
-        /**
-         * TODO: I think i see where your confusion came from. It's my bad, I was unclear about how
-         * and why I was changing the logic and flow of their example. And I chose variable names that
-         * added to confusion...
-         *
-         * Since their example was a main() that was meant to just be run once,
-         * they view the creation of a vector representation of a review
-         * as a part of iterating through the training corpus. While this is fine for running it once, I was
-         * anticipating having to try different NN configs, etc. So, I was thinking about creating the vector
-         * representations for the reviews earlier in the whole process and saving these vector reps inside
-         * the Review objects themselves. This is mainly to save time on recomputing these vectors every time
-         * we try a different NN. But also, conceptually, their SentimentExampleIterator is doing too much.
-         *
-         * To further confuse us, in SentimentExampleIterator, when they say "reviews" they are referring
-         * to a temporary mini-batch of reviews that they are preparing to send as input to the RNN.
-         * On top of all this, they are also creating the desired output vector (they call it temp[]).
-         * Finally, they combine the mini-batch of vectorized reviews, with a mini-batch of desired outputs
-         * in what is unfortunately called a "DataSet." DataSet is ambiguous too because it can refer to a single
-         * instance of an INPUT/OUTPUT pair, or a mini-batch of INPUTS/mini-batch of OUTPUTS collection.
-         */
-
-
-        /********************************************
-         *
-         * So let's move vectorizing over to the Review class.
-         * This function will just iterate through all
-         * Review objects and tell them to vectorize themselves.
-         *
-         ********************************************/
-
-        /********************************************************
-         * Actually, this is probably better as part of the importData() method.
-         * Since we already perform an entire pass through all the reviews in order to import,
-         * we can vectorize during that pass-through.
-         ******************************************************
-         */
-//        final String WORD_VECTORS_PATH = "/users/Renita/GoogleNews-vectors-negative300.bin";
-//        final String WORD_VECTORS_PATH = "C:/Docs/School/CSUPomona/CS517/NLPProject/data/GoogleNews-vectors-negative300.bin";
-//        final String WORD_VECTORS_PATH = "sentimentWordVectors.txt";
-//        WordVectors googleWordVectors = null;
-//        try {
-////            googleWordVectors = WordVectorSerializer.loadGoogleModel(new File(WORD_VECTORS_PATH), true);
-//            googleWordVectors = WordVectorSerializer.loadTxtVectors(new File(WORD_VECTORS_PATH));
-//        } catch (IOException e) {
-//            System.err.println("Can't load Google Word Vectors from file.");
-//            e.printStackTrace();
-//        }
-//        for (Review r : reviews.values()) {
-//            r.vectorizeReview(googleWordVectors, maxLength);
-//        }
-//    } // end reviews2wordVectors()
-
-
-
-
-
-    /***********************************************************
-
-    TokenizerFactory tokenizerFactory = new DefaultTokenizerFactory();
-        tokenizerFactory.setTokenPreProcessor(new CommonPreprocessor());
-//
-//        tokenizerFactory.setTokenPreProcessor(new TokenPreProcess() {
-//            @Override
-//            public String preProcess(String token) {
-//                token = token.toLowerCase();
-//                String base = preProcess(token);
-//                base = base.replace("\\d", "d");
-//                if(base.endsWith("ly") || base.endsWith("ing")) {
-//                    System.out.println("token");
-//                }
-//                    return base;
-//            }
-//        });
-
-
-        List<List<String>> allTokens = new ArrayList<>(reviews.size());
-
-        for (Review r: reviews.values()){
-            List<String> tokens = tokenizerFactory.create(r.reviewText).getTokens();
-            List<String> tokensFiltered = new ArrayList<>();
-            for(String t : tokens ){
-                if(vsm.hasWord(t)) tokensFiltered.add(t);
-            }
-            allTokens.add(tokensFiltered);
-        }
-
-
-        int vectorSize = vsm.lookupTable().layerSize();
-
-        //Here: we have reviews.size() examples of varying lengths
-        INDArray featureVector = Nd4j.create(reviews.size(), vectorSize, maxLength);
-        INDArray labels = Nd4j.create(reviews.size(), 2, maxLength);    //Two labels: positive or negative
-
-        INDArray featuresMask = Nd4j.zeros(reviews.size(), maxLength);
-        INDArray labelsMask = Nd4j.zeros(reviews.size(), maxLength);
-
-        int[] temp = new int[2];
-        for( int i=0; i<reviews.size(); i++ ){
-            List<String> tokens = allTokens.get(i);
-            temp[0] = i;
-            //Get word vectors for each word in review, and put them in the training data
-            for( int j=0; j<tokens.size() && j<maxLength; j++ ){
-                String token = tokens.get(j);
-                INDArray vector = vsm.getWordVectorMatrix(token);
-                featureVector.put(new INDArrayIndex[]{NDArrayIndex.point(i), NDArrayIndex.all(), NDArrayIndex.point(j)}, vector);
-
-                temp[1] = j;
-                featuresMask.putScalar(temp, 1.0);  //Word is present (not padding) for this example + time step -> 1.0 in features mask
-            }
-        }
-
-//        for (Review r: reviews.values()) {
-//            Tokenizer tokenizer = tokenizerFactory.tokenize(r.getReviewText());
-//            List<String> tokens = tokenizer.getTokens();
-//
-//        }
-
-        //StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
-        // for each review in reviews
-            // pass through Stanford CoreNLP, giving us sentences and tokens
-
-            // for each sentence (up to maxLength, which is max # of sentences),
-                // for each token
-                    // lookup word vector, save to temp INDArray, tokenVectors
-
-                // sentence vector = average of the tokenVectors in the temp INDArray
-                // store sentence vector on another INDArray, sentenceVectors
-            // after all sentences processed, sentenceVectors represents the whole review
-            // store sentenceVectors in Review object as a field
-
-
-        // at this point, all Review objects in our DataSetManager have been updated to include their
-        // vector representations
-    }
-****************************************************/
 
     /**
      * Outputs reviews to dir, 1 review per file. Intended to be used for polarity.
@@ -407,7 +256,7 @@ public class DataSetManager {
     }
 
 
-    public static void makeTrainingSplits() {
+    public static void makeTrainingSplits() throws IOException {
         DataSetManager trainingDM = new DataSetManager();
         File ldf = new File("src/main/resources/movieData/maasDataset/labeledTrainData.tsv");
         trainingDM.importData(ldf);
@@ -419,7 +268,7 @@ public class DataSetManager {
         trainingDM.toMultiClassFiles(pathForSplitData, true);
     }
 
-    public static void makeTestingSplits() {
+    public static void makeTestingSplits() throws IOException{
         DataSetManager testingDM = new DataSetManager();
         File ldf = new File("src/main/resources/movieData/maasDataset/testData.tsv");
         testingDM.importData(ldf);

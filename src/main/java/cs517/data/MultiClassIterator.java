@@ -1,7 +1,5 @@
 package cs517.data;
 
-import cs517.data.DataSetManager;
-import org.apache.commons.io.FileUtils;
 import org.deeplearning4j.datasets.iterator.DataSetIterator;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
@@ -10,9 +8,12 @@ import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.INDArrayIndex;
 import org.nd4j.linalg.indexing.NDArrayIndex;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.NoSuchElementException;
+
+//import java.io.File;
 
 
 /**
@@ -30,6 +31,7 @@ public class MultiClassIterator implements DataSetIterator {
     private List<String> reviewsToIterate;
     private int cursor = 0;
     private int vectorSize = 100;
+    private int maxLength = 50;
 
 
     /**
@@ -68,77 +70,19 @@ public class MultiClassIterator implements DataSetIterator {
      * @param num == batchSize
      * @return
      */
-
-    // TODO: finish nextDataSet(int num)
     private DataSet nextDataSet(int num) {
-
-/*
-        //First: load reviews to String. Alternate positive and negative reviews
-
-        //Create data for training
-        //Here: we have reviews.size() examples of varying lengths
-        INDArray features = Nd4j.create(reviews.size(), vectorSize, maxLength);
-        INDArray labels = Nd4j.create(reviews.size(), 2, maxLength);    //Two labels: positive or negative
-        //Because we are dealing with reviews of different lengths and only one output at the final time step: use padding arrays
-        //Mask arrays contain 1 if data is present at that time step for that example, or 0 if data is just padding
-        INDArray featuresMask = Nd4j.zeros(reviews.size(), maxLength);
-        INDArray labelsMask = Nd4j.zeros(reviews.size(), maxLength);
-
-        int[] temp = new int[2];
-        for( int i=0; i<reviews.size(); i++ ){
-            List<String> tokens = allTokens.get(i);
-            temp[0] = i;
-            //Get word vectors for each word in review, and put them in the training data
-            for( int j=0; j<tokens.size() && j<maxLength; j++ ){
-                String token = tokens.get(j);
-                INDArray vector = wordVectors.getWordVectorMatrix(token);
-                features.put(new INDArrayIndex[]{NDArrayIndex.point(i), NDArrayIndex.all(), NDArrayIndex.point(j)}, vector);
-
-                temp[1] = j;
-                featuresMask.putScalar(temp, 1.0);  //Word is present (not padding) for this example + time step -> 1.0 in features mask
-            }
-
-            int idx = (positive[i] ? 0 : 1);
-            int lastIdx = Math.min(tokens.size(),maxLength);
-            labels.putScalar(new int[]{i,idx,lastIdx-1},1.0);   //Set label: [0,1] for negative, [1,0] for positive
-            labelsMask.putScalar(new int[]{i,lastIdx-1},1.0);   //Specify that an output exists at the final time step for this example
-        }
-
-        return new DataSet(features,labels,featuresMask,labelsMask);
-    }
-
-*/
-
-//        // create INDArrays to store reviews and corresponding labels
-//        List<String> minibatchOfReviews = new ArrayList<>();
-//        List<>
-//
-//        INDArray features = Nd4j.zeros(batchSize, 100, 100);
-//        INDArray labels = Nd4j.zeros(batchSize, 8, 100);
-//
-//        // use cursor to access revIDs from reviewsToIterate
-//        // use the revID to get review vectors, etc.
-//        int maxLength = 0;
-//        for (int i = 0; i < num && cursor < totalExamples(); i++) {
-//            String revID = reviewsToIterate.get(cursor);
-//            Review rev = dm.reviews.get(revID);
-//            INDArray revVec = rev.reviewVecs.dup();
-//
-//            features.put(rev.revVec);
-//            minibatchOfLabels.add(oneHot(rev.score));
-//            maxLength = Math.max(maxLength, rev.reviewVecs.shape()[0]);
-//            cursor++;
-//        }
 
         // create data for training
         INDArray features = Nd4j.create(num, vectorSize, maxLength);
         INDArray labels = Nd4j.create(num, 8, maxLength);
         
 
-//         Need to pad features and labels arrays with masks because the network is expecting a time series input of a certain
-//         time length. Reviews vary in the # of sentences they contain, so we pad short ones with 0's.
-//         Also, we pad the output to time it so that it arrives simultaneously with the end of the input series.
-//         Mask arrays contain 1 if data is present at that time step for that example, or 0 if data is just padding
+         /*
+         Need to pad features and labels arrays with masks because the network is expecting a time series input of a certain
+         time length. Reviews vary in the # of sentences they contain, so we pad short ones with 0's.
+         Also, we pad the output to time it so that it arrives simultaneously with the end of the input series.
+         Mask arrays contain 1 if data is present at that time step for that example, or 0 if data is just padding
+         */
         INDArray featuresMask = Nd4j.zeros(num, maxLength);
         INDArray labelsMask = Nd4j.zeros(num, maxLength);
 
@@ -147,15 +91,15 @@ public class MultiClassIterator implements DataSetIterator {
             INDArray revVectors = rev.reviewVecs;
             features.put(new INDArrayIndex[]{
                     NDArrayIndex.point(i),
-                    NDArrayIndex.all(),
-                    NDArrayIndex.interval(0, revVectors.shape()[1])}, revVectors);
+                    NDArrayIndex.interval(0, revVectors.shape()[1]),
+                    NDArrayIndex.all()}, revVectors);
             featuresMask.put(new INDArrayIndex[]{NDArrayIndex.interval(0, revVectors.shape()[1])}, 1.0);
 
             int revScore = rev.score;
             labels.put(new INDArrayIndex[]{
                     NDArrayIndex.point(i),
-                    NDArrayIndex.all(),
-                    NDArrayIndex.point(revVectors.shape()[1] - 1)}, oneHot(revScore));
+                    NDArrayIndex.point(revVectors.shape()[1] - 1),
+                    NDArrayIndex.all()}, oneHot(revScore));
             labelsMask.putScalar(revVectors.shape()[1] - 1, 1.0);
         }
 
