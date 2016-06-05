@@ -14,8 +14,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static edu.stanford.nlp.util.logging.RedwoodConfiguration.Handlers.output;
-import static org.json.zip.JSONzip.end;
 
 /**
  * This is a DataSetIterator that is specialized for the Stanford Maas IMDB review dataset.
@@ -44,7 +42,7 @@ public class MultiClassIterator implements DataSetIterator {
      * @throws IOException
      */
     public MultiClassIterator(DataSetManager dataSetManager, int fromIndex, int toIndex, int batchSize) {
-        this.dm = dataSetManager;
+        dm = dataSetManager;
         this.batchSize = batchSize;
         reviewsToIterate = dm.shuffledRevIDs.subList(fromIndex, toIndex);
     }
@@ -64,54 +62,18 @@ public class MultiClassIterator implements DataSetIterator {
         return nextDataSet(num);
     }
 
-
     /**
      * Helper function for above.
      *
-     * @param num
+     * @param num == batchSize
      * @return
      */
 
     // TODO: finish nextDataSet(int num)
-    /**********************************************************************************
     private DataSet nextDataSet(int num) {
 
-        *************************************************************************
-
+/*
         //First: load reviews to String. Alternate positive and negative reviews
-        List<String> minibatchReviews = new ArrayList<>(num);
-        int[]
-        int[] scores = new boolean[num];
-        for (int i=0; i<num && cursor<totalExamples(); ++i){
-
-                String review = FileUtils.readFileToString(positiveFiles[posReviewNumber]);
-                reviews.add(review);
-                positive[i] = true;
-            } else {
-                //Load negative review
-                int negReviewNumber = cursor / 2;
-                String review = FileUtils.readFileToString(negativeFiles[negReviewNumber]);
-                reviews.add(review);
-                positive[i] = false;
-            }
-            cursor++;
-        }
-
-        //Second: tokenize reviews and filter out unknown words
-        List<List<String>> allTokens = new ArrayList<>(reviews.size());
-        int maxLength = 0;
-        for(String s : reviews){
-            List<String> tokens = tokenizerFactory.create(s).getTokens();
-            List<String> tokensFiltered = new ArrayList<>();
-            for(String t : tokens ){
-                if(wordVectors.hasWord(t)) tokensFiltered.add(t);
-            }
-            allTokens.add(tokensFiltered);
-            maxLength = Math.max(maxLength,tokensFiltered.size());
-        }
-
-        //If longest review exceeds 'truncateLength': only take the first 'truncateLength' words
-        if(maxLength > truncateLength) maxLength = truncateLength;
 
         //Create data for training
         //Here: we have reviews.size() examples of varying lengths
@@ -145,64 +107,62 @@ public class MultiClassIterator implements DataSetIterator {
         return new DataSet(features,labels,featuresMask,labelsMask);
     }
 
-********************************************************************************/
+*/
 
-
-
-
-/*****************************************************************************
-
-
-
-
-        // create INDArrays to store reviews and corresponding labels
-        List<String> minibatchOfReviews = new ArrayList<>();
-        List<>
-
-        INDArray features = Nd4j.zeros(batchSize, 100, 100);
-        INDArray labels = Nd4j.zeros(batchSize, 8, 100);
-
-        // use cursor to access revIDs from reviewsToIterate
-        // use the revID to gather vectors, etc.
-        int maxLength = 0;
-        for (int i = 0; i < num && cursor < totalExamples(); i++) {
-            String revID = reviewsToIterate.get(cursor);
-            Review rev = dm.reviews.get(revID);
-            INDArray revVec = rev.reviewVecs.dup();
-
-            features.put(rev.reviewVecs);
-            minibatchOfLabels.add(oneHot(rev.score));
-            maxLength = Math.max(maxLength, rev.reviewVecs.shape()[0]);
-            cursor++;
-        }
+//        // create INDArrays to store reviews and corresponding labels
+//        List<String> minibatchOfReviews = new ArrayList<>();
+//        List<>
+//
+//        INDArray features = Nd4j.zeros(batchSize, 100, 100);
+//        INDArray labels = Nd4j.zeros(batchSize, 8, 100);
+//
+//        // use cursor to access revIDs from reviewsToIterate
+//        // use the revID to get review vectors, etc.
+//        int maxLength = 0;
+//        for (int i = 0; i < num && cursor < totalExamples(); i++) {
+//            String revID = reviewsToIterate.get(cursor);
+//            Review rev = dm.reviews.get(revID);
+//            INDArray revVec = rev.reviewVecs.dup();
+//
+//            features.put(rev.revVec);
+//            minibatchOfLabels.add(oneHot(rev.score));
+//            maxLength = Math.max(maxLength, rev.reviewVecs.shape()[0]);
+//            cursor++;
+//        }
 
         // create data for training
-        INDArray features = Nd4j.create(minibatchOfReviewVecs.size(), 100, maxLength);
-        INDArray labels = Nd4j.create(minibatchOfLabels.size(), 8, maxLength);
+        INDArray features = Nd4j.create(num, vectorSize, maxLength);
+        INDArray labels = Nd4j.create(num, 8, maxLength);
+        
 
 //         Need to pad features and labels arrays with masks because the network is expecting a time series input of a certain
 //         time length. Reviews vary in the # of sentences they contain, so we pad short ones with 0's.
 //         Also, we pad the output to time it so that it arrives simultaneously with the end of the input series.
 //         Mask arrays contain 1 if data is present at that time step for that example, or 0 if data is just padding
-        INDArray featuresMask = Nd4j.zeros(minibatchOfReviewVecs.size(), maxLength);
-        INDArray labelsMask = Nd4j.zeros(minibatchOfLabels.size(), maxLength);
+        INDArray featuresMask = Nd4j.zeros(num, maxLength);
+        INDArray labelsMask = Nd4j.zeros(num, maxLength);
 
-        for (int i = 0; i < minibatchOfReviewVecs.size(); i++) {
+        for (int i = 0; i < batchSize; ++i) {
+            Review rev = dm.reviews.get(reviewsToIterate.get(i));
+            INDArray revVectors = rev.reviewVecs;
             features.put(new INDArrayIndex[]{
-                             NDArrayIndex.point(i),
-                             NDArrayIndex.all(),
-                             NDArrayIndex.point(j)
-                         },
-                         minibatchOfReviewVecs.get(i));
+                    NDArrayIndex.point(i),
+                    NDArrayIndex.all(),
+                    NDArrayIndex.interval(0, revVectors.shape()[1])}, revVectors);
+            featuresMask.put(new INDArrayIndex[]{NDArrayIndex.interval(0, revVectors.shape()[1])}, 1.0);
 
+            int revScore = rev.score;
+            labels.put(new INDArrayIndex[]{
+                    NDArrayIndex.point(i),
+                    NDArrayIndex.all(),
+                    NDArrayIndex.point(revVectors.shape()[1] - 1)}, oneHot(revScore));
+            labelsMask.putScalar(revVectors.shape()[1] - 1, 1.0);
         }
 
 
-        DataSet result = new DataSet(rev.reviewVecs, label, null, null);
+        DataSet result = new DataSet(features, labels, featuresMask, labelsMask);
         return result;
     }
-************************************************************************/
-
 
     /**
      * Helper method to turn a movie rating score into a one-hot vector.

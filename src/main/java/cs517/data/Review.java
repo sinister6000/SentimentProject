@@ -85,10 +85,9 @@ public class Review {
         pipeline.annotate(annotatedReview);
 
         /**
-         * Each annotator is like a special pair of glasses that reveals extra information about whatever you're looking at.
-         * An annotator can even superimpose extra information on top of whatever you're looking at.
-         *    -The 'tokenize' annotator is like glasses that can clearly mark word boundaries.
-         *    -The 'ssplit' annotator is similar, but it clearly marks sentence boundaries.
+         * Each annotator is like a layer of extra information on top of the original text.
+         *    -The 'tokenize' annotator marks word boundaries.
+         *    -The 'ssplit' annotator marks sentence boundaries.
          *    -The 'pos' annotator superimposes part of speech info on top of the text.
          *    -and so on...
          *
@@ -134,7 +133,6 @@ public class Review {
             }
         }
 
-        // set reviewVecs to sentenceVecs.
         reviewVecs = sentenceVecs;
         System.out.println(reviewVecs);
         System.out.println(id + " DONE!\n");
