@@ -73,7 +73,7 @@ public class MultiClassIterator implements DataSetIterator {
     private DataSet nextDataSet(int num) {
 
         // create data for training
-        INDArray features = Nd4j.create(num, vectorSize, maxLength);
+        INDArray features = Nd4j.create(new int[]{num, vectorSize, maxLength}, 'f');
         INDArray labels = Nd4j.create(num, 8, maxLength);
         
 
@@ -86,22 +86,47 @@ public class MultiClassIterator implements DataSetIterator {
         INDArray featuresMask = Nd4j.zeros(num, maxLength);
         INDArray labelsMask = Nd4j.zeros(num, maxLength);
 
+<<<<<<< HEAD
+        for (int i = 0; i < batchSize && cursor < reviewsToIterate.size(); ++i, ++cursor) {
+            Review rev = dm.reviews.get(reviewsToIterate.get(cursor));
+            INDArray revVectors = rev.reviewVecs.dup().transpose();
+
+
+            System.out.println("features[0] shape: " + features.get(new INDArrayIndex[]{
+                    NDArrayIndex.point(0),
+                    NDArrayIndex.all(),
+                    NDArrayIndex.all(),}).shapeInfoToString());
+            System.out.println("revVectors shape: " + revVectors.shapeInfoToString() + "\n");
+
+
+=======
         for (int i = 0; i < batchSize && cursor < reviewsToIterate.size(); i++, cursor++) {
             Review rev = dm.reviews.get(reviewsToIterate.get(cursor+ i));
             INDArray revVectors = rev.reviewVecs.dup();
+>>>>>>> refs/remotes/origin/master
             features.put(new INDArrayIndex[]{
                     NDArrayIndex.point(i),
                     NDArrayIndex.all(),
                     NDArrayIndex.interval(0, revVectors.shape()[1])}, revVectors);
+<<<<<<< HEAD
+            featuresMask.put(new INDArrayIndex[]{NDArrayIndex.interval(0, revVectors.shape()[1]-1)}, 1.0);
+=======
             featuresMask.put(new INDArrayIndex[]{NDArrayIndex.interval(0, revVectors.shape()[1])}, 1.0);
+>>>>>>> refs/remotes/origin/master
 
             int revScore = rev.score;
+//            int lastIdx = Math.min(revVectors.size(), maxLength);
             labels.put(new INDArrayIndex[]{
                     NDArrayIndex.point(i),
                     NDArrayIndex.all(),
                     NDArrayIndex.point(revVectors.shape()[1] - 1)}, oneHot(revScore));
             labelsMask.putScalar(revVectors.shape()[1] - 1, 1.0);
         }
+
+        System.out.println("features: " + features);
+//        System.out.println("labels: " +labels);
+//        System.out.println("featuresMask: " + featuresMask);
+//        System.out.println("labelsMask: " + labelsMask + "\n");
 
 
         DataSet result = new DataSet(features, labels, featuresMask, labelsMask);
@@ -126,28 +151,28 @@ public class MultiClassIterator implements DataSetIterator {
         INDArray label = Nd4j.zeros(8);
         switch (score) {
             case 1:
-                label.putScalar(0, 1);
+                label.putScalar(0, 1.0);
                 break;
             case 2:
-                label.putScalar(1, 1);
+                label.putScalar(1, 1.0);
                 break;
             case 3:
-                label.putScalar(2, 1);
+                label.putScalar(2, 1.0);
                 break;
             case 4:
-                label.putScalar(3, 1);
+                label.putScalar(3, 1.0);
                 break;
             case 7:
-                label.putScalar(4, 1);
+                label.putScalar(4, 1.0);
                 break;
             case 8:
-                label.putScalar(5, 1);
+                label.putScalar(5, 1.0);
                 break;
             case 9:
-                label.putScalar(6, 1);
+                label.putScalar(6, 1.0);
                 break;
             case 10:
-                label.putScalar(7, 1);
+                label.putScalar(7, 1.0);
                 break;
         }
         return label;

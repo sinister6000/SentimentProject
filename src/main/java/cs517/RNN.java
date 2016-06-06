@@ -24,7 +24,9 @@ public class RNN {
 
     public RNN() {
         MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
-                .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).iterations(1)
+//        MultiLayerConfiguration conf = new MultiLayerConfiguration.Builder()
+                .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+                .iterations(1)
                 .updater(Updater.RMSPROP)
                 .regularization(true).l2(1e-5)
                 .weightInit(WeightInit.XAVIER)
@@ -35,9 +37,11 @@ public class RNN {
                 .layer(0, new GravesLSTM.Builder()
                         .nIn(vectorSize).nOut(vectorSize)
                         .activation("softsign")
+                        .weightInit(WeightInit.XAVIER)
                         .build())
                 .layer(1, new GravesLSTM.Builder().nIn(vectorSize).nOut(vectorSize)
                         .activation("softsign")
+                        .weightInit(WeightInit.XAVIER)
                         .build())
                 .layer(2, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MCXENT)
                         .activation("softmax")

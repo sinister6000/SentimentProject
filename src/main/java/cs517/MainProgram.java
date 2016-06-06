@@ -57,18 +57,15 @@ public class MainProgram {
             Evaluation evaluation = new Evaluation();
 
             while (test.hasNext()) {
-                if (i % 200 == 0) {
-                    System.out.println("processing " + i);
-                }
 
                 DataSet t = test.next();
                 INDArray features = t.getFeatureMatrix();
-                INDArray lables = t.getLabels();
+                INDArray labels = t.getLabels();
                 INDArray inMask = t.getFeaturesMaskArray();
                 INDArray outMask = t.getLabelsMaskArray();
                 INDArray predicted = myNN.net.output(features, false, inMask, outMask);
 
-                evaluation.evalTimeSeries(lables, predicted, outMask);
+                evaluation.evalTimeSeries(labels, predicted, outMask);
                 i++;
             }
             test.reset();
