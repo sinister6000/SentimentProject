@@ -70,3 +70,12 @@ hs_err_pid*
 
 # Created by .ignore support plugin (hsz.mobi)
 /pom.xml
+.idea/
+Paper.doc
+README.md
+deeplearning4j-examples.iml
+logs/
+sentimentWordVectors.txt
+src/main/java/cs517/data/NDArrayToy.java
+src/main/resources/application.conf
+target/

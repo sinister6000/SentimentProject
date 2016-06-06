@@ -29,7 +29,7 @@ public class MultiClassIterator implements DataSetIterator {
     private DataSetManager dm;
     private int batchSize;
     private List<String> reviewsToIterate;
-    private int cursor;
+    private int cursor = 0;
     private int vectorSize = 100;
     private int maxLength = 50;
 
@@ -75,7 +75,7 @@ public class MultiClassIterator implements DataSetIterator {
         // create data for training
         INDArray features = Nd4j.create(new int[]{num, vectorSize, maxLength}, 'f');
         INDArray labels = Nd4j.create(num, 8, maxLength);
-        
+
 
          /*
          Need to pad features and labels arrays with masks because the network is expecting a time series input of a certain
@@ -86,33 +86,22 @@ public class MultiClassIterator implements DataSetIterator {
         INDArray featuresMask = Nd4j.zeros(num, maxLength);
         INDArray labelsMask = Nd4j.zeros(num, maxLength);
 
-<<<<<<< HEAD
         for (int i = 0; i < batchSize && cursor < reviewsToIterate.size(); ++i, ++cursor) {
             Review rev = dm.reviews.get(reviewsToIterate.get(cursor));
             INDArray revVectors = rev.reviewVecs.dup().transpose();
 
 
-            System.out.println("features[0] shape: " + features.get(new INDArrayIndex[]{
-                    NDArrayIndex.point(0),
+            System.out.println("features[0] shape: " + features.get(NDArrayIndex.point(0),
                     NDArrayIndex.all(),
-                    NDArrayIndex.all(),}).shapeInfoToString());
+                    NDArrayIndex.all()).shapeInfoToString());
             System.out.println("revVectors shape: " + revVectors.shapeInfoToString() + "\n");
 
 
-=======
-        for (int i = 0; i < batchSize && cursor < reviewsToIterate.size(); i++, cursor++) {
-            Review rev = dm.reviews.get(reviewsToIterate.get(cursor+ i));
-            INDArray revVectors = rev.reviewVecs.dup();
->>>>>>> refs/remotes/origin/master
             features.put(new INDArrayIndex[]{
                     NDArrayIndex.point(i),
                     NDArrayIndex.all(),
                     NDArrayIndex.interval(0, revVectors.shape()[1])}, revVectors);
-<<<<<<< HEAD
             featuresMask.put(new INDArrayIndex[]{NDArrayIndex.interval(0, revVectors.shape()[1]-1)}, 1.0);
-=======
-            featuresMask.put(new INDArrayIndex[]{NDArrayIndex.interval(0, revVectors.shape()[1])}, 1.0);
->>>>>>> refs/remotes/origin/master
 
             int revScore = rev.score;
 //            int lastIdx = Math.min(revVectors.size(), maxLength);
@@ -143,7 +132,7 @@ public class MultiClassIterator implements DataSetIterator {
      *    8 -> [ 0 0 0 0 0 1 0 0 ]
      *    9 -> [ 0 0 0 0 0 0 1 0 ]
      *   10 -> [ 0 0 0 0 0 0 0 1 ]
-     * 
+     *
      * @param score
      * @return
      */
