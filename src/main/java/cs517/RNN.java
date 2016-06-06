@@ -18,12 +18,11 @@ public class RNN {
 
     MultiLayerNetwork net;
     int batchSize = 32;
-    int vectorSize = 100;
+    int vectorSize;
     int nEpochs = 5;
     int maxLength = 50;
 
     public RNN() {
-        int vectorSize = 100;
         MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
 //        MultiLayerConfiguration conf = new MultiLayerConfiguration.Builder()
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
@@ -36,18 +35,18 @@ public class RNN {
                 .learningRate(0.0018)
                 .list()
                 .layer(0, new GravesLSTM.Builder()
-                        .nIn(vectorSize).nOut(100)
+                        .nIn(vectorSize).nOut(vectorSize)
                         .activation("softsign")
                         .weightInit(WeightInit.XAVIER)
                         .build())
-                .layer(1, new GravesLSTM.Builder().nIn(100).nOut(100)
+                .layer(1, new GravesLSTM.Builder().nIn(vectorSize).nOut(vectorSize)
                         .activation("softsign")
                         .weightInit(WeightInit.XAVIER)
                         .build())
                 .layer(2, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MCXENT)
                         .activation("softmax")
                         .weightInit(WeightInit.XAVIER)
-                        .nIn(100)
+                        .nIn(vectorSize)
                         .nOut(8)
                         .build())
                 .pretrain(false).backprop(true).build();
