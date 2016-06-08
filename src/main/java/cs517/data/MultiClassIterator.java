@@ -13,8 +13,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-//import java.io.File;
-
 
 /**
  * This is a DataSetIterator that is specialized for the Stanford Maas IMDB review dataset.
@@ -86,33 +84,16 @@ public class MultiClassIterator implements DataSetIterator {
         INDArray featuresMask = Nd4j.zeros(num, maxLength);
         INDArray labelsMask = Nd4j.zeros(num, maxLength);
 
-<<<<<<< HEAD
         for (int i = 0; i < batchSize && cursor < reviewsToIterate.size(); ++i, ++cursor) {
             Review rev = dm.reviews.get(reviewsToIterate.get(cursor));
             INDArray revVectors = rev.reviewVecs.dup().transpose();
 
-
-            System.out.println("features[0] shape: " + features.get(new INDArrayIndex[]{
-                    NDArrayIndex.point(0),
-                    NDArrayIndex.all(),
-                    NDArrayIndex.all(),}).shapeInfoToString());
-            System.out.println("revVectors shape: " + revVectors.shapeInfoToString() + "\n");
-
-
-=======
-        for (int i = 0; i < batchSize && cursor < reviewsToIterate.size(); i++, cursor++) {
-            Review rev = dm.reviews.get(reviewsToIterate.get(cursor+ i));
-            INDArray revVectors = rev.reviewVecs.dup();
->>>>>>> refs/remotes/origin/master
             features.put(new INDArrayIndex[]{
                     NDArrayIndex.point(i),
                     NDArrayIndex.all(),
                     NDArrayIndex.interval(0, revVectors.shape()[1])}, revVectors);
-<<<<<<< HEAD
-            featuresMask.put(new INDArrayIndex[]{NDArrayIndex.interval(0, revVectors.shape()[1]-1)}, 1.0);
-=======
+            featuresMask.put(new INDArrayIndex[]{NDArrayIndex.interval(0, revVectors.shape()[1] - 1)}, 1.0);
             featuresMask.put(new INDArrayIndex[]{NDArrayIndex.interval(0, revVectors.shape()[1])}, 1.0);
->>>>>>> refs/remotes/origin/master
 
             int revScore = rev.score;
 //            int lastIdx = Math.min(revVectors.size(), maxLength);
@@ -123,7 +104,7 @@ public class MultiClassIterator implements DataSetIterator {
             labelsMask.putScalar(revVectors.shape()[1] - 1, 1.0);
         }
 
-        System.out.println("features: " + features);
+//        System.out.println("features: " + features);
 //        System.out.println("labels: " +labels);
 //        System.out.println("featuresMask: " + featuresMask);
 //        System.out.println("labelsMask: " + labelsMask + "\n");
@@ -131,6 +112,7 @@ public class MultiClassIterator implements DataSetIterator {
 
         DataSet result = new DataSet(features, labels, featuresMask, labelsMask);
         return result;
+
     }
 
     /**
@@ -237,22 +219,5 @@ public class MultiClassIterator implements DataSetIterator {
     public void remove() {
 
     }
-
-    /**
-     * Convenience method for loading review to String
-     */
-//    public String loadReviewToString(int index) throws IOException {
-//        File f;
-//        if (index % 2 == 0) f = positiveFiles[index / 2];
-//        else f = negativeFiles[index / 2];
-//        return FileUtils.readFileToString(f);
-//    }
-//
-//    /**
-//     * Convenience method to get label for review
-//     */
-//    public boolean isPositiveReview(int index) {
-//        return index % 2 == 0;
-//    }
 
 }
