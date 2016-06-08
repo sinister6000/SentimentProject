@@ -67,11 +67,13 @@ public class Review {
      * @param vsm vector space model used to vectorize the Review
      * @param maxSentences
      */
+
+    // TODO: i think i was wrong, this doesn't belong here. should move to MultiClassIterator
     void vectorizeReview(WordVectors vsm, int maxSentences) {
-        System.out.println("vectorizing review " + id);
+//        System.out.println("vectorizing review " + id);
 
         int vectorSize = vsm.lookupTable().layerSize();
-        System.out.println("vectorSize = " + vectorSize);
+//        System.out.println("vectorSize = " + vectorSize);
 
         // define pipeline properties, then create pipeline
         Properties props = new Properties();
@@ -134,7 +136,7 @@ public class Review {
         }
 
         reviewVecs = sentenceVecs;
-        System.out.println(reviewVecs);
-        System.out.println(id + " DONE!\n");
+//        System.out.println(reviewVecs);
+//        System.out.println(id + " DONE!\n");
     }
 }

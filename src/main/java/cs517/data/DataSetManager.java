@@ -4,21 +4,28 @@ import org.apache.uima.resource.ResourceInitializationException;
 import org.deeplearning4j.datasets.iterator.DataSetIterator;
 import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
 import org.deeplearning4j.models.embeddings.wordvectors.WordVectors;
+import org.nd4j.linalg.factory.Nd4j;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 /**
  * Created by allen on 5/17/2016.
  */
 
+/**
+ * A DataSetManager imports reviews from files and creates Review objects.
+ * It has various methods for outputting the reviews in different ways
+ * (split by type, all in a single file, 1 review per file, etc.).
+ * It also creates iterators through the reviews for training, cross validation,
+ * and testing sets.
+ *
+ * Typical usage is to create a DataSetManager, then import all labeled examples,
+ * then make iterators.
+ */
 
 
 public class DataSetManager {
-
 
     Map<String, Review> reviews;
 
@@ -63,9 +70,12 @@ public class DataSetManager {
         while (sc.hasNext()) {
             currentLine = sc.next();
             currentReview = new Review(currentLine);
-            currentReview.vectorizeReview(vsm, 75);
+
+            // TODO: refactor and pull this out of here and move to MultiClassIterator
+//            currentReview.vectorizeReview(vsm, 50);
 
             // store Review in map
+//            System.out.println("revVecs.shape: " + currentReview.reviewVecs.shapeInfoToString());
             reviews.put(currentReview.id, currentReview);
 
             // add currentReview to proper bin, else create a bin.
@@ -133,6 +143,13 @@ public class DataSetManager {
      * @return DataSetIterator  iterator that will yield the reviews whose IDs are contained
      *                          within the subList.
      */
+//    private DataSetIterator makeDataSetIterator(int fromIndex, int toIndex, int batchSize) {
+//        for (int i = fromIndex; i < toIndex; i++) {
+//
+//        }
+//        SequenceRecordReader featureReader = new InputStreamReader();
+//    }
+
     private DataSetIterator makeDataSetIterator(int fromIndex, int toIndex, int batchSize) {
         return new MultiClassIterator(this, fromIndex, toIndex, batchSize);
     }
@@ -169,6 +186,35 @@ public class DataSetManager {
     }
 
 
+    void toLabeledDirectories(String dir) throws IOException {
+        for (Review rev : reviews.values()) {
+            File dir2 = new File(dir + rev.score + "/" + rev.id + ".txt");
+            BufferedWriter bw = new BufferedWriter(new FileWriter(dir2));
+            bw.write(rev.reviewText);
+            bw.close();
+        }
+    }
+
+
+    void toInputLabelFiles(List<String> revIDs, String dir) throws IOException{
+        for (String rid : revIDs) {
+            Review rev = reviews.get(rid);
+
+            File fIn = new File(dir + "/" + rev.id + "_features.txt");
+            File fScore = new File(dir + "/" + rev.id + "_score.txt");
+
+            DataOutputStream dataOut = new DataOutputStream(new FileOutputStream(fIn));
+            BufferedWriter bw2 = new BufferedWriter(new FileWriter(fScore));
+
+
+            Nd4j.write(rev.reviewVecs, dataOut);
+            bw2.write(rev.score);
+            dataOut.close();
+            bw2.close();
+        }
+    }
+
+
     /**
      * Outputs all reviews to a single file, one review per line.
      *
@@ -178,9 +224,9 @@ public class DataSetManager {
         if (!reviews.isEmpty()) {
             File f = new File(fname);
             try (BufferedWriter bw = new BufferedWriter(new FileWriter(f))) {
-                for (String key : reviews.keySet()) {
-                    Review currentReview = reviews.get(key);
-                    bw.write(currentReview.reviewText);
+                System.out.println("reviews.size: " + reviews.size());
+                for (Review rev : reviews.values()) {
+                    bw.write(rev.reviewText);
                     bw.write("\n");
                 }
             } catch (IOException e) {
@@ -282,10 +328,13 @@ public class DataSetManager {
 //        makeTrainingSplits();
 //        makeTestingSplits();
         DataSetManager trainingDM = new DataSetManager();
-        File ldf = new File("src/main/resources/movieData/toyMaasDataset/toyLabeledTrainData.tsv");
+        File ldf = new File("src/main/resources/movieData/maasDataset/labeledTrainData.tsv");
         trainingDM.importData(ldf);
-        File tdf = new File("src/main/resources/movieData/toyMaasDataset/toyTestData.tsv");
+        File tdf = new File("src/main/resources/movieData/maasDataset/testData.tsv");
         trainingDM.importData(tdf);
+        File udf = new File("src/main/resources/movieData/maasDataset/unlabeledTrainData.tsv");
+        trainingDM.importData(udf);
+        trainingDM.toSingleFile("src/main/resources/movieData/maasDataset/allReviewText2.txt");
 
 //        final String WORD_VECTORS_PATH = "/users/Renita/GoogleNews-vectors-negative300.bin";
 //        final String WORD_VECTORS_PATH = "C:/Docs/School/CSUPomona/CS517/NLPProject/data/GoogleNews-vectors-negative300";

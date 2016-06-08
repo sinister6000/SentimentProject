@@ -8,7 +8,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.deeplearning4j.datasets.iterator.AsyncDataSetIterator;
 import org.deeplearning4j.datasets.iterator.DataSetIterator;
 import org.deeplearning4j.eval.Evaluation;
-import org.deeplearning4j.examples.recurrent.word2vecsentiment.SentimentExampleIterator;
 import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
 import org.deeplearning4j.models.embeddings.wordvectors.WordVectors;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
@@ -20,20 +19,14 @@ import org.deeplearning4j.nn.conf.layers.GravesLSTM;
 import org.deeplearning4j.nn.conf.layers.RnnOutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
-import org.deeplearning4j.optimize.api.IterationListener;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
-import org.deeplearning4j.ui.UiConnectionInfo;
 import org.deeplearning4j.ui.weights.HistogramIterationListener;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 
-
 import java.io.*;
 import java.net.URL;
-import java.util.Collections;
-
-import static java.util.Collections.*;
 
 /**
  * Created by Renita on 6/5/16.
@@ -45,15 +38,16 @@ class Word2VecRNN {
     /** Location to save and extract the training/testing data */
     public static final String DATA_PATH = FilenameUtils.concat(System.getProperty("java.io.tmpdir"), "dl4j_w2vSentiment/");
     /** Location (local file system) for the Google News vectors. Set this manually. */
-    public static final String WORD_VECTORS_PATH = "/users/renita/documents/sentimentWordVectors.txt";
+//    public static final String WORD_VECTORS_PATH = "sentimentWordVectors.txt";
+    public static final String WORD_VECTORS_PATH = "C:\\Docs\\School\\CSUPomona\\CS517\\NLPProject\\data\\GoogleNews-vectors-negative300.bin";
 
 
     public static void main(String[] args) throws Exception {
         //Download and extract data
         downloadData();
 
-        int batchSize = 50;     //Number of examples in each minibatch
-        int vectorSize = 100;   //Size of the word vectors. 300 in the Google News model
+        int batchSize = 150;     //Number of examples in each minibatch
+        int vectorSize = 300;   //Size of the word vectors. 300 in the Google News model
         int nEpochs = 2;        //Number of epochs (full passes of training data) to train on
         int truncateReviewsToLength = 300;  //Truncate reviews with length (# words) greater than this
 
@@ -66,14 +60,14 @@ class Word2VecRNN {
                 .regularization(true).l2(1e-5)
                 .weightInit(WeightInit.XAVIER)
                 .gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue).gradientNormalizationThreshold(1.0)
-                .learningRate(0.0018)
+                .learningRate(0.0007)
                 .list()
-                .layer(0, new GravesLSTM.Builder().nIn(vectorSize).nOut(50)
+                .layer(0, new GravesLSTM.Builder().nIn(vectorSize).nOut(100)
                         .activation("softsign").build())
-                .layer(1, new GravesLSTM.Builder().nIn(50).nOut(50)
-                        .activation("tanh").build())
+                .layer(1, new GravesLSTM.Builder().nIn(100).nOut(20)
+                        .activation("softsign").build())
                 .layer(2, new RnnOutputLayer.Builder().activation("softmax")
-                        .lossFunction(LossFunctions.LossFunction.MCXENT).nIn(50).nOut(2).build())
+                        .lossFunction(LossFunctions.LossFunction.MCXENT).nIn(20).nOut(2).build())
 //            .layer(1, new RnnOutputLayer.Builder().activation("softmax")
 //                .lossFunction(LossFunctions.LossFunction.MCXENT).nIn(50).nOut(2).build())
                 .pretrain(false).backprop(true).build();
@@ -81,18 +75,24 @@ class Word2VecRNN {
 
         MultiLayerNetwork net = new MultiLayerNetwork(conf);
         net.init();
-        net.setListeners(new ScoreIterationListener(1));
+
+
+
 
         //DataSetIterators for training and testing respectively
         //Using AsyncDataSetIterator to do data loading in a separate thread; this may improve performance vs. waiting for data to load
 
-        //WordVectors wordVectors = WordVectorSerializer.loadGoogleModel(new File(WORD_VECTORS_PATH), true, false);
-        WordVectors wordVectors = WordVectorSerializer.loadTxtVectors(new File(WORD_VECTORS_PATH));
+        WordVectors wordVectors = WordVectorSerializer.loadGoogleModel(new File(WORD_VECTORS_PATH), true, false);
+//        WordVectors wordVectors = WordVectorSerializer.loadTxtVectors(new File(WORD_VECTORS_PATH));
 
         DataSetIterator train = new AsyncDataSetIterator(new SentimentIterator(DATA_PATH,wordVectors,batchSize,truncateReviewsToLength,true),1);
-        DataSetIterator test = new AsyncDataSetIterator(new SentimentIterator(DATA_PATH,wordVectors,100,truncateReviewsToLength,false),1);
+        DataSetIterator test = new AsyncDataSetIterator(new SentimentIterator(DATA_PATH,wordVectors,batchSize,truncateReviewsToLength,false),1);
 
 
+
+        net.setListeners(new ScoreIterationListener(1));
+        net.setListeners(new ScoreIterationListener(2));
+        net.setListeners(new HistogramIterationListener(1));
         net.setListeners(new HistogramIterationListener(2));
 
 

@@ -28,7 +28,7 @@ public class Word2VecRawText {
 
         log.info("Load & Vectorize Sentences....");
         // Strip white space before and after for each line
-        File f = new File("src/main/resources/movieData/maasDataset/allReviewText.txt");
+        File f = new File("src/main/resources/movieData/maasDataset/allReviewText2.txt");
         SentenceIterator iter = new PrefetchingSentenceIterator.Builder(new LineSentenceIterator(f))
               .setSentencePreProcessor(new MySentencePreProcessor())
               .build();

@@ -227,21 +227,4 @@ public class MultiClassIterator implements DataSetIterator {
 
     }
 
-    /**
-     * Convenience method for loading review to String
-     */
-//    public String loadReviewToString(int index) throws IOException {
-//        File f;
-//        if (index % 2 == 0) f = positiveFiles[index / 2];
-//        else f = negativeFiles[index / 2];
-//        return FileUtils.readFileToString(f);
-//    }
-//
-//    /**
-//     * Convenience method to get label for review
-//     */
-//    public boolean isPositiveReview(int index) {
-//        return index % 2 == 0;
-//    }
-
 }
